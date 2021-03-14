@@ -1,9 +1,12 @@
+from abc import ABC, abstractmethod
+
+
 class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "[POINT] X={x} Y={y}".format(x=self.x, y=self.y)
 
 
@@ -22,12 +25,12 @@ class Warehouse:
         self.position = position
         self.products = products
 
-    def __str__(self):
+    def __str__(self) -> str:
         products = ""
         for product in self.products:
             products += str(product) + "\n"
 
-        return "[WAREHOUSE {id}] - position={position}\n{products}"\
+        return "[WAREHOUSE {id}] - position={position}\n{products}" \
             .format(id=self.id, position=self.position, products=products)
 
 
@@ -37,10 +40,26 @@ class Order:
         self.position = position
         self.products = products
 
-    def __str__(self):
+    def __str__(self) -> str:
         products = ""
         for product in self.products:
             products += str(product) + "\n"
 
-        return "[ORDER {id}] - position={position}\n{products}"\
+        return "[ORDER {id}] - position={position}\n{products}" \
             .format(id=self.id, position=self.position, products=products)
+
+
+class Command(ABC):
+    @abstractmethod
+    def type(self):
+        pass
+
+
+class LoadCommand(Command):
+    def type(self):
+        print("Load")
+
+
+class DeliverCommand(Command):
+    def type(self):
+        print("Deliver")
