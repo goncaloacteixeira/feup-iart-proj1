@@ -1,6 +1,3 @@
-from abc import ABC, abstractmethod
-
-
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -27,8 +24,8 @@ class Warehouse:
 
     def __str__(self) -> str:
         products = ""
-        for product in self.products:
-            products += str(product) + "\n"
+        for product, amount in self.products.items():
+            products += str(product) + " amount=" + str(amount) + "\n"
 
         return "[WAREHOUSE {id}] - position={position}\n{products}" \
             .format(id=self.id, position=self.position, products=products)
@@ -42,24 +39,34 @@ class Order:
 
     def __str__(self) -> str:
         products = ""
-        for product in self.products:
-            products += str(product) + "\n"
+        for product, quantity in self.products.items():
+            products += str(product) + " quantity=" + str(quantity) + "\n"
 
         return "[ORDER {id}] - position={position}\n{products}" \
             .format(id=self.id, position=self.position, products=products)
 
 
-class Command(ABC):
-    @abstractmethod
-    def type(self):
-        pass
+class Gene:
+    def __init__(self, droneID, demand, node, productID):
+        self.droneID = droneID
+        self.demand = demand
+        self.node = node
+        self.productID = productID
+
+    def __str__(self) -> str:
+        return "[ {droneID} | {demand} | {node} | {productID} ]".format(droneID=self.droneID, demand=self.demand,
+                                                                        node=self.node, productID=self.productID)
 
 
-class LoadCommand(Command):
-    def type(self):
-        print("Load")
+class Chromosome:
+    def __init__(self, genes):
+        self.genes = genes
 
+    def __str__(self) -> str:
+        genes = ""
+        for gene in self.genes:
+            genes += str(gene) + "\n"
+        return genes
 
-class DeliverCommand(Command):
-    def type(self):
-        print("Deliver")
+    def add_gene(self, gene):
+        self.genes.append(gene)
