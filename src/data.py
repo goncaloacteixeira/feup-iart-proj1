@@ -1,4 +1,5 @@
 from objects.primitives import *
+from objects.constraints import *
 from collections import Counter
 
 
@@ -49,7 +50,16 @@ def deliverGenes(orders):
     for order in orders:
         i += 1
         for product, quantity in order.products.items():
-            list.append(Gene(None, -quantity, order, product.id))
+            remaining = quantity
+            max_product = math.floor(problem.payload/product.weight)  # max products per drone
+            drones_needed = math.ceil(quantity/max_product)
+
+            for i in range(drones_needed-1):
+                remaining -= max_product
+                list.append(Gene(None, -max_product, order, product.id))
+            if remaining != 0:
+                list.append(Gene(None, -remaining, order, product.id))
+
     return list
 
 
@@ -62,30 +72,29 @@ def calculate_product(warehouse_available, needed):
         return 0, still_need
 
 
-# TODO verificar se não ultrapassa quantidades
 def initial_solution(problem):
     wh_copy = problem.warehouses.copy()
     chromosome = Chromosome([])
-    drone = 1
-    drone_quantity = 0
+    drone = 0
 
     supplier_genes = deliverGenes(problem.orders)
     for gene in supplier_genes:
-        remaining_product = abs(gene.demand)
+        remaining_product = abs(gene.demand)  # demand product
         for warehouse in wh_copy:
             for product in warehouse.products.keys():
                 if gene.productID == product.id:
                     wh_quantity, needed = calculate_product(warehouse.products[product], remaining_product)
                     if wh_quantity < warehouse.products[product]:
                         chromosome.add_gene(
-                            Gene(drone, remaining_product - needed, warehouse, gene.productID))
-                        warehouse.products[product] = wh_quantity
-                        remaining_product = needed
-                    if remaining_product == 0:
+                            Gene(drone, remaining_product - needed, warehouse, gene.productID))  # add gene with pick up
+
+                        warehouse.products[product] = wh_quantity  # updates warehouse product
+                        remaining_product = needed  # decrement demand product
+                    if remaining_product == 0:  # when demand is 0 we can add gene corresponding to delivery
                         gene.set_drone(drone)
                         chromosome.add_gene(gene)
                         drone += 1
-                        if drone > problem.drones:
+                        if drone > problem.drones-1:
                             drone = 1
                         break
             if remaining_product == 0:
@@ -99,6 +108,7 @@ if __name__ == "__main__":
 
     chromosome = initial_solution(problem)
     print(chromosome)
+    print(check_turns(chromosome, problem))
 
     print("-----")
     # drone 1 path
