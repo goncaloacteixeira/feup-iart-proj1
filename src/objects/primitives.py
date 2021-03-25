@@ -69,18 +69,20 @@ class Problem:
 
 
 class Gene:
-    def __init__(self, droneID: int, demand: int, node: Spot, productID: int):
-        self.droneID = droneID
+    def __init__(self, drone_id: int, demand: int, node: Spot, product: Product, turn: int = 0):
+        self.droneID = drone_id
         self.demand = demand
         self.node = node
-        self.productID = productID
+        self.product = product
+        self.turn = turn
 
     def __str__(self) -> str:
         return "[ {droneID} | {demand} | {node} | {productID} ]".format(droneID=self.droneID, demand=self.demand,
-                                                                        node=self.node.id, productID=self.productID)
+                                                                        node=self.node.id, productID=self.product.id)
 
     def set_drone(self, drone) -> None:
         self.droneID = drone
+
 
 
 class Chromosome:
@@ -95,6 +97,7 @@ class Chromosome:
 
     def add_gene(self, gene):
         self.genes.append(gene)
+
 
 
 class DroneAction(enum.Enum):
