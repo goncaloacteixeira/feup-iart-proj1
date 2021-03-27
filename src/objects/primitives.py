@@ -1,6 +1,6 @@
-import enum
 import math
 from abc import ABC, abstractmethod
+from typing import Union
 
 
 class Point:
@@ -69,7 +69,7 @@ class Problem:
 
 
 class Gene:
-    def __init__(self, drone_id: int, demand: int, node: Spot, product: Product, turn: int = 0):
+    def __init__(self, drone_id: Union[int, None], demand: int, node: Spot, product: Product, turn: int = None):
         self.droneID = drone_id
         self.demand = demand
         self.node = node
@@ -77,17 +77,45 @@ class Gene:
         self.turn = turn
 
     def __str__(self) -> str:
-        return "[ {droneID} | {demand} | {node} | {productID} ]".format(droneID=self.droneID, demand=self.demand,
-                                                                        node=self.node.id, productID=self.product.id)
+        return "[ {droneID} | {demand} | {node} | {productID} | {turns} ]".format(droneID=self.droneID,
+                                                                                  demand=self.demand,
+                                                                                  node=self.node.id,
+                                                                                  productID=self.product.id,
+                                                                                  turns=self.turn)
 
     def set_drone(self, drone) -> None:
         self.droneID = drone
 
+    def set_turns(self, turns) -> None:
+        self.turn = turns
+
+
+class DronePath:
+    def __init__(self, drone_id: int, steps: list[Gene] = None):
+        if steps is None:
+            steps = []
+        self.drone_id = drone_id
+        self.steps = steps
+
+    def __str__(self):
+        print("DRONE ", self.drone_id)
+        [print(str(x)) for x in self.steps]
+        return ""
+
+    def get_last_step(self) -> Union[Gene, None]:
+        try:
+            return self.steps[-1]
+        except IndexError:  # if steps = []
+            return None
+
+    def add_step(self, gene: Gene):
+        self.steps.append(gene)
 
 
 class Chromosome:
-    def __init__(self, genes):
+    def __init__(self, genes, solution: list[DronePath] = None):
         self.genes = genes
+        self.solution = solution
 
     def __str__(self) -> str:
         genes = ""
@@ -97,9 +125,3 @@ class Chromosome:
 
     def add_gene(self, gene):
         self.genes.append(gene)
-
-
-
-class DroneAction(enum.Enum):
-    P = 1  # PickUp
-    D = 2  # Deliver

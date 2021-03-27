@@ -109,24 +109,22 @@ if __name__ == "__main__":
 
     print("-----")
     # drone 1 path
-    list = []
+    path = DronePath(1)
     previous_position = problem.warehouses[0].position
     for gene in chromosome.genes:
         if gene.droneID == 1:
             print(gene)
+            last_step = path.get_last_step()
+            if last_step is None:
+                previous_position = problem.warehouses[0].position
+                previous_turns = 0
+            else:
+                previous_position = last_step.node.position
+                previous_turns = last_step.turn
 
-            previous = 0
-            try:
-                previous = list[-1][2]
-            except IndexError:
-                print("First Element, can't access previous. previous: 0")
+            gene.set_turns(previous_turns +
+                           gene.node.position.distance(previous_position) +
+                           1)
+            path.add_step(gene)
 
-            turns = gene.node.position.distance(previous_position) + 1
-            list.append([gene, turns, previous + turns])
-            previous_position = gene.node.position
-
-    for item in list:
-        [print(str(x), end=' | ') for x in item]
-        print()
-
-    # [print(order) for order in order_list]
+    print(path)
