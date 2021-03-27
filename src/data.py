@@ -111,20 +111,23 @@ if __name__ == "__main__":
     # drone 1 path
     path = DronePath(1)
     previous_position = problem.warehouses[0].position
+
     for gene in chromosome.genes:
-        if gene.droneID == 1:
-            print(gene)
-            last_step = path.get_last_step()
-            if last_step is None:
-                previous_position = problem.warehouses[0].position
-                previous_turns = 0
-            else:
-                previous_position = last_step.node.position
-                previous_turns = last_step.turn
+        if not chromosome.path_exists(gene.droneID):
+            chromosome.add_path(gene.droneID)
 
-            gene.set_turns(previous_turns +
-                           gene.node.position.distance(previous_position) +
-                           1)
-            path.add_step(gene)
+        path = chromosome.get_path(gene.droneID)
+        last_step = path.get_last_step()
+        if last_step is None:
+            previous_position = problem.warehouses[0].position
+            previous_turns = 0
+        else:
+            previous_position = last_step.node.position
+            previous_turns = last_step.turn
 
-    print(path)
+        gene.set_turns(previous_turns +
+                       gene.node.position.distance(previous_position) +
+                       1)
+        path.add_step(gene)
+
+    chromosome.print_solution()

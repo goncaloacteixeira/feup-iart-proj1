@@ -99,7 +99,7 @@ class DronePath:
 
     def __str__(self):
         print("DRONE ", self.drone_id)
-        [print(str(x)) for x in self.steps]
+        [print(str(gene)) for gene in self.steps]
         return ""
 
     def get_last_step(self) -> Union[Gene, None]:
@@ -113,7 +113,9 @@ class DronePath:
 
 
 class Chromosome:
-    def __init__(self, genes, solution: list[DronePath] = None):
+    def __init__(self, genes, solution: dict[DronePath] = None):
+        if solution is None:
+            solution = {}
         self.genes = genes
         self.solution = solution
 
@@ -123,5 +125,18 @@ class Chromosome:
             genes += str(gene) + "\n"
         return genes
 
-    def add_gene(self, gene):
+    def print_solution(self):
+        for key, value in self.solution.items():
+            print(value)
+
+    def add_gene(self, gene) -> None:
         self.genes.append(gene)
+
+    def path_exists(self, drone_id) -> bool:
+        return True if drone_id in self.solution else False
+
+    def add_path(self, drone_id) -> None:
+        self.solution[drone_id] = DronePath(drone_id)
+
+    def get_path(self, drone_id) -> DronePath:
+        return self.solution.get(drone_id)
