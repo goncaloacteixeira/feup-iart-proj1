@@ -58,7 +58,7 @@ class Order(Spot):
 
 class Problem:
     def __init__(self, rows: int, cols: int, drones: int, turns: int, payload: int, warehouses: list[Warehouse],
-                 orders: list[Order]):
+                 orders: list[Order], products: list[Product]):
         self.rows = rows
         self.cols = cols
         self.drones = drones
@@ -66,6 +66,7 @@ class Problem:
         self.payload = payload
         self.warehouses = warehouses
         self.orders = orders
+        self.products = products
 
 
 class Gene:

@@ -3,7 +3,7 @@ from objects.constraints import *
 from collections import Counter
 
 
-def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order]]:
+def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
     with open(filename, 'r') as file:
         # header
         n_rows, n_cols, n_drones, max_turns, max_payload = [int(x) for x in file.readline().split(" ")]
@@ -41,7 +41,7 @@ def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list
             order = Order(i, Point(x, y), dict(Counter(order_products)))
             order_list.append(order)
 
-    return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list
+    return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list, products
 
 
 def deliverGenes(orders):
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     chromosome = initial_solution(problem)
     print(chromosome)
-    print(check_turns(chromosome, problem))
+    print(check_pick_up(chromosome, problem))
 
     print("-----")
     # drone 1 path
