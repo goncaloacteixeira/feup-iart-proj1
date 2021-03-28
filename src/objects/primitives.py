@@ -59,13 +59,17 @@ class Order(Spot):
 
 class Problem:
     """ Static Class to hold info about the problem"""
-    rows = None
-    cols = None
-    drones = None
-    turns = None
-    payload = None
-    warehouses = None
-    orders = None
+    rows: int = None
+    cols: int = None
+    drones: int = None
+    turns: int = None
+    payload: int = None
+    warehouses: list[Warehouse] = None
+    orders: list[Order] = None
+
+    @staticmethod
+    def calculate_points(turn: int) -> int:
+        return math.ceil(((Problem.turns - turn) / Problem.turns)*100)
 
 
 class Gene:
@@ -113,12 +117,12 @@ class DronePath:
 
 
 class OrderPath:
-    def __init__(self, order: Order, steps: list[Gene] = None, value: int = 0):
+    def __init__(self, order: Order, steps: list[Gene] = None, score: int = 0):
         if steps is None:
             steps = []
         self.order = order
         self.steps = steps
-        self.value = value
+        self.score = score  # calculated score for this order
 
     def __str__(self) -> str:
         print("ORDER ", self.order.id)
@@ -128,17 +132,25 @@ class OrderPath:
     def add_step(self, gene: Gene) -> None:
         self.steps.append(gene)
 
+    def update_score(self) -> int:
+        maximum = -1
+        for gene in self.steps:
+            if gene.turn > maximum:
+                maximum = gene.turn
+        self.score = Problem.calculate_points(maximum)
+        return self.score
+
 
 class Chromosome:
     def __init__(self, genes: list[Gene] = None, solution: dict[int, DronePath] = None,
-                 orders: dict[int, OrderPath] = None, value: int = 0):
+                 orders: dict[int, OrderPath] = None, score: int = 0):
         if orders is None: orders = {}
         if genes is None: genes = []
         if solution is None: solution = {}
         self.genes = genes
         self.solution = solution
         self.orders = orders
-        self.value = value
+        self.score = score
 
     def __str__(self) -> str:
         genes = ""
@@ -162,6 +174,11 @@ class Chromosome:
         for gene in self.genes:
             self.__update_solution(gene)
             self.__update_orders(gene)
+
+        cumulative = 0
+        for order_path in self.orders.values():
+            cumulative += order_path.update_score()
+        self.score = cumulative / len(Problem.orders)
 
     def __update_solution(self, gene: Gene):
         if not self.__path_exists(gene.droneID):

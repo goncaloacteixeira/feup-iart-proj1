@@ -100,16 +100,16 @@ def initial_solution() -> Chromosome:
 
 
 if __name__ == "__main__":
-    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders] = parse_file("input_data/demo_altered.in")
+    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders] = \
+        parse_file("input_data/demo_altered.in")
 
     chromosome = initial_solution()
     print(chromosome)
     # print(check_turns(chromosome, problem))
 
-    print("-----")
+    print(" ----- ")
 
     chromosome.update_internal()
 
-    chromosome.print_solution()
-    chromosome.print_orders()
+    print("SCORE ", chromosome.score)
 
