@@ -100,8 +100,8 @@ def initial_solution() -> Chromosome:
 
 
 if __name__ == "__main__":
-    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders, Problem.products] = \
-        parse_file("input_data/demo_altered.in")
+    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
+     Problem.products] = parse_file("input_data/demo_altered.in")
 
     chromosome = initial_solution()
     print(chromosome)

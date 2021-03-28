@@ -7,6 +7,7 @@ def check_turns(drone_path, problem):
 
 
 def check_payload(drone_path, problem):
+    #TODO check logo depois de adicionar a payload
     payload = 0
     for gene in drone_path.genes:
         if gene.demand > 0:
@@ -19,6 +20,7 @@ def check_payload(drone_path, problem):
 
 
 def check_delivery(drone_path):
+    #TODO dict que mantem catálogo e nas entregas verifica se tem
     for gene in drone_path.genes:
         product_qt = 0
         if gene.demand < 0:
@@ -30,6 +32,3 @@ def check_delivery(drone_path):
             if product_qt + gene.demand < 0:
                 return False
     return True
-
-
-
