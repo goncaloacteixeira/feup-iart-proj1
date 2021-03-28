@@ -1,5 +1,4 @@
 from objects.primitives import *
-# from objects.constraints import *
 from collections import Counter
 
 
@@ -44,14 +43,14 @@ def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list
     return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list
 
 
-def deliverGenes(orders):
+def deliverGenes(orders) -> list[Gene]:
     list = []
     i = -1
     for order in orders:
         i += 1
         for product, quantity in order.products.items():
             remaining = quantity
-            max_product = math.floor(problem.payload / product.weight)  # max products per drone
+            max_product = math.floor(Problem.payload / product.weight)  # max products per drone
             drones_needed = math.ceil(quantity / max_product)
 
             for i in range(drones_needed - 1):
@@ -63,7 +62,7 @@ def deliverGenes(orders):
     return list
 
 
-def calculate_product(warehouse_available, needed):
+def calculate_product(warehouse_available, needed) -> tuple[int, int]:
     if warehouse_available >= needed:
         available = warehouse_available - needed
         return available, 0
@@ -72,12 +71,12 @@ def calculate_product(warehouse_available, needed):
         return 0, still_need
 
 
-def initial_solution(problem):
-    wh_copy = problem.warehouses.copy()
-    chromosome = Chromosome([])
+def initial_solution() -> Chromosome:
+    wh_copy = Problem.warehouses.copy()
+    chromosome = Chromosome()
     drone = 0
 
-    supplier_genes = deliverGenes(problem.orders)
+    supplier_genes = deliverGenes(Problem.orders)
     for gene in supplier_genes:
         remaining_product = abs(gene.demand)  # demand product
         for warehouse in wh_copy:
@@ -93,7 +92,7 @@ def initial_solution(problem):
                     gene.set_drone(drone)
                     chromosome.add_gene(gene)
                     drone += 1
-                    if drone > problem.drones - 1:
+                    if drone > Problem.drones - 1:
                         drone = 0
                     break
 
@@ -101,33 +100,16 @@ def initial_solution(problem):
 
 
 if __name__ == "__main__":
-    problem = Problem(*parse_file("input_data/demo_altered.in"))
+    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders] = parse_file("input_data/demo_altered.in")
 
-    chromosome = initial_solution(problem)
+    chromosome = initial_solution()
     print(chromosome)
     # print(check_turns(chromosome, problem))
 
     print("-----")
-    # drone 1 path
-    path = DronePath(1)
-    previous_position = problem.warehouses[0].position
 
-    for gene in chromosome.genes:
-        if not chromosome.path_exists(gene.droneID):
-            chromosome.add_path(gene.droneID)
-
-        path = chromosome.get_path(gene.droneID)
-        last_step = path.get_last_step()
-        if last_step is None:
-            previous_position = problem.warehouses[0].position
-            previous_turns = 0
-        else:
-            previous_position = last_step.node.position
-            previous_turns = last_step.turn
-
-        gene.set_turns(previous_turns +
-                       gene.node.position.distance(previous_position) +
-                       1)
-        path.add_step(gene)
+    chromosome.update_internal()
 
     chromosome.print_solution()
+    chromosome.print_orders()
+
