@@ -3,6 +3,8 @@ import math
 from abc import ABC, abstractmethod
 from typing import Union
 
+from src.constraints import *
+
 
 class Point:
     def __init__(self, x: int, y: int):
@@ -80,14 +82,15 @@ class Gene:
         self.node = node
         self.product = product
         self.turn = turn
-        #TODO add penalização
+        self.penalty = 0
 
     def __str__(self) -> str:
-        return "[ {droneID} | {demand} | {node} | {productID} | {turns} ]".format(droneID=self.droneID,
-                                                                                  demand=self.demand,
-                                                                                  node=self.node.id,
-                                                                                  productID=self.product.id,
-                                                                                  turns=self.turn)
+        return "[ {droneID} | {demand} | {node} | {productID} | {turns} | {penalty} ]".format(droneID=self.droneID,
+                                                                                              demand=self.demand,
+                                                                                              node=self.node.id,
+                                                                                              productID=self.product.id,
+                                                                                              turns=self.turn,
+                                                                                              penalty=self.penalty)
 
     def set_drone(self, drone: int) -> None:
         self.droneID = drone
@@ -141,12 +144,8 @@ class OrderPath:
         self.steps.append(gene)
 
     def update_score(self) -> int:
-        #TODO Cada gene terá penalização, subtrai-se no final
-        #TODO pôr max() em baixo
-        maximum = -1
-        for gene in self.steps:
-            if gene.turn > maximum:
-                maximum = gene.turn
+        # TODO Cada gene terá penalização, subtrai-se no final
+        maximum = max(gene.turn for gene in self.steps)
         self.score = Problem.calculate_points(maximum)
         return self.score
 
@@ -185,7 +184,7 @@ class Chromosome:
             self.__update_solution(gene)
             self.__update_orders(gene)
 
-        #TODO passar pelos Drone Paths e adicionar penalizações
+        self.__update_penalties()
 
         cumulative = 0
         for order_path in self.orders.values():
@@ -219,6 +218,11 @@ class Chromosome:
             order_path = self.__get_order(gene.node)
             order_path.add_step(gene)
         pass
+
+    def __update_penalties(self):
+        for drone_path in self.solution.values():
+            check_payload(drone_path, Problem.products, Problem.payload)
+            check_delivery(drone_path)
 
     def __path_exists(self, drone_id: int) -> bool:
         return True if drone_id in self.solution else False
