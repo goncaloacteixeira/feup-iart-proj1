@@ -66,10 +66,11 @@ class Problem:
     payload: int = None
     warehouses: list[Warehouse] = None
     orders: list[Order] = None
+    products: list[Product] = None
 
     @staticmethod
     def calculate_points(turn: int) -> int:
-        return math.ceil(((Problem.turns - turn) / Problem.turns)*100)
+        return math.ceil(((Problem.turns - turn) / Problem.turns) * 100)
 
 
 class Gene:
@@ -79,6 +80,7 @@ class Gene:
         self.node = node
         self.product = product
         self.turn = turn
+        #TODO add penalização
 
     def __str__(self) -> str:
         return "[ {droneID} | {demand} | {node} | {productID} | {turns} ]".format(droneID=self.droneID,
@@ -101,7 +103,7 @@ class DronePath:
         self.drone_id = drone_id
         self.steps = steps
 
-    def __str__(self):
+    def __str__(self) -> str:
         print("DRONE ", self.drone_id)
         [print(str(gene)) for gene in self.steps]
         return ""
@@ -133,6 +135,8 @@ class OrderPath:
         self.steps.append(gene)
 
     def update_score(self) -> int:
+        #TODO Cada gene terá penalização, subtrai-se no final
+        #TODO pôr max() em baixo
         maximum = -1
         for gene in self.steps:
             if gene.turn > maximum:
@@ -175,10 +179,12 @@ class Chromosome:
             self.__update_solution(gene)
             self.__update_orders(gene)
 
+        #TODO passar pelos Drone Paths e adicionar penalizações
+
         cumulative = 0
         for order_path in self.orders.values():
             cumulative += order_path.update_score()
-        self.score = cumulative / len(Problem.orders)
+        self.score = float(cumulative) / len(Problem.orders)
 
     def __update_solution(self, gene: Gene):
         if not self.__path_exists(gene.droneID):

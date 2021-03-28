@@ -2,7 +2,7 @@ from objects.primitives import *
 from collections import Counter
 
 
-def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order]]:
+def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
     with open(filename, 'r') as file:
         # header
         n_rows, n_cols, n_drones, max_turns, max_payload = [int(x) for x in file.readline().split(" ")]
@@ -40,7 +40,7 @@ def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list
             order = Order(i, Point(x, y), dict(Counter(order_products)))
             order_list.append(order)
 
-    return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list
+    return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list, products
 
 
 def deliverGenes(orders) -> list[Gene]:
@@ -100,8 +100,8 @@ def initial_solution() -> Chromosome:
 
 
 if __name__ == "__main__":
-    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders] = \
-        parse_file("input_data/demo_altered.in")
+    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
+     Problem.products] = parse_file("input_data/demo_altered.in")
 
     chromosome = initial_solution()
     print(chromosome)
@@ -112,4 +112,3 @@ if __name__ == "__main__":
     chromosome.update_internal()
 
     print("SCORE ", chromosome.score)
-
