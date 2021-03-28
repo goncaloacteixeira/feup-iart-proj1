@@ -1,6 +1,8 @@
 from objects.primitives import *
 from collections import Counter
 
+from src.constraints import *
+
 
 def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
     with open(filename, 'r') as file:
@@ -95,7 +97,6 @@ def initial_solution() -> Chromosome:
                     if drone > Problem.drones - 1:
                         drone = 0
                     break
-
     return chromosome
 
 
@@ -105,7 +106,8 @@ if __name__ == "__main__":
 
     chromosome = initial_solution()
     print(chromosome)
-    # print(check_turns(chromosome, problem))
+    chromosome.update_internal()
+    print(check_delivery(chromosome.solution[0]))
 
     print(" ----- ")
 
