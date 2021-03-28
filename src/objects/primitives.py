@@ -95,6 +95,9 @@ class Gene:
     def set_turns(self, turns: int) -> None:
         self.turn = turns
 
+    def __eq__(self, o: Gene) -> bool:
+        return self.droneID == o.droneID and self.demand == o.demand and self.node.id == o.node.id and self.product.id == o.product.id and self.turn == o.turn
+
 
 class DronePath:
     def __init__(self, drone_id: int, steps: list[Gene] = None):
@@ -157,10 +160,10 @@ class Chromosome:
         self.score = score
 
     def __str__(self) -> str:
-        genes = ""
-        for gene in self.genes:
-            genes += str(gene) + "\n"
-        return genes
+        return "\n".join([str(gene) for gene in self.genes])
+
+    def __repr__(self) -> str:
+        return "[Chromosome] Number of genes: " + str(len(self.genes))
 
     def add_gene(self, gene: Gene) -> None:
         self.genes.append(gene)
@@ -231,3 +234,11 @@ class Chromosome:
 
     def __get_order(self, order: Order) -> OrderPath:
         return self.orders[order.id]
+
+    def __eq__(self, o: Chromosome) -> bool:
+        if len(self.genes) != len(o.genes): return False
+        for i in range(0, len(self.genes)):
+            if self.genes[i] != o.genes[i]: return False
+        return True
+
+
