@@ -1,4 +1,4 @@
-from typing import List
+from functools import cache
 from data import *
 from search.Utils import *
 import random
@@ -19,7 +19,7 @@ def generate_population(deliver_genes, max_depth=100, max_population=20):
         new_stack = []
         for s in stack:
             if s.info not in visited:
-                expanded = expand(s, deliver_genes)
+                expanded = expand(s, tuple(deliver_genes))
                 for new_node in expanded:
                     if is_goal(new_node, len(deliver_genes)):
                         solutions.append(new_node.info)
@@ -38,6 +38,7 @@ def generate_population(deliver_genes, max_depth=100, max_population=20):
     return tree, solutions
 
 
+@cache
 def expand(node: Node, deliver_genes):
     expanded = []
 
@@ -73,9 +74,10 @@ def expand(node: Node, deliver_genes):
         expanded.append(new_node)
         i += 1
 
-    return remove_dups(expanded)
+    return remove_dups(tuple(expanded))
 
 
+@cache
 def remove_dups(nodes):
     new_nodes = []
     visited = []
@@ -92,6 +94,6 @@ if __name__ == "__main__":
 
     deliver_genes = deliverGenes(Problem.orders)
 
-    tree, population = generate_population(deliver_genes, 15, 20)
+    tree, population = generate_population(deliver_genes, 80, 100)
 
     print(population)

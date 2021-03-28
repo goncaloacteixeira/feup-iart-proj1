@@ -98,6 +98,9 @@ class Gene:
     def __eq__(self, o: Gene) -> bool:
         return self.droneID == o.droneID and self.demand == o.demand and self.node.id == o.node.id and self.product.id == o.product.id and self.turn == o.turn
 
+    def __hash__(self) -> int:
+        return super().__hash__()
+
 
 class DronePath:
     def __init__(self, drone_id: int, steps: list[Gene] = None):
