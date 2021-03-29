@@ -17,6 +17,7 @@ class Node:
         self.heuristics = 999999
         self.warehouses = []
         self.supplies = 0
+        self.deliver_genes = []
 
     def set_depth(self, depth):
         self.depth = depth

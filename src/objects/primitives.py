@@ -3,7 +3,7 @@ import math
 from abc import ABC, abstractmethod
 from typing import Union
 
-from src.constraints import *
+from constraints import check_payload, check_delivery
 
 
 class Point:
@@ -85,7 +85,7 @@ class Gene:
         self.penalty = 0
 
     def __str__(self) -> str:
-        return "[ {droneID} | {demand} | {node} | {productID} | {turns} | {penalty} ]".format(droneID=self.droneID,
+        return "[ {droneID} | {demand} | {productID} | {node} | {turns} | {penalty} ]".format(droneID=self.droneID,
                                                                                               demand=self.demand,
                                                                                               node=self.node.id,
                                                                                               productID=self.product.id,
@@ -160,6 +160,7 @@ class Chromosome:
         self.solution = solution
         self.orders = orders
         self.score = score
+        self.penalty = 0
 
     def __str__(self) -> str:
         return "\n".join([str(gene) for gene in self.genes])
@@ -221,8 +222,8 @@ class Chromosome:
 
     def __update_penalties(self):
         for drone_path in self.solution.values():
-            check_payload(drone_path, Problem.products, Problem.payload)
-            check_delivery(drone_path)
+            self.penalty += check_payload(drone_path, Problem.products, Problem.payload)
+            self.penalty += check_delivery(drone_path)
 
     def __path_exists(self, drone_id: int) -> bool:
         return True if drone_id in self.solution else False

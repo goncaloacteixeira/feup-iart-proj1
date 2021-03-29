@@ -3,11 +3,13 @@ from data import *
 from search.Utils import *
 import random
 import copy
+from datetime import datetime
 
 
 def generate_population(deliver_genes, max_depth=100, max_population=20):
     root = Node(Chromosome())
     root.warehouses = Problem.warehouses
+    root.deliver_genes = deliver_genes
 
     solutions = []
     stack = [root]
@@ -19,13 +21,13 @@ def generate_population(deliver_genes, max_depth=100, max_population=20):
         new_stack = []
         for s in stack:
             if s.info not in visited:
-                expanded = expand(s, tuple(deliver_genes))
+                expanded = expand(s)
                 for new_node in expanded:
                     if is_goal(new_node, len(deliver_genes)):
                         solutions.append(new_node.info)
                         visited.append(new_node.info)
                         if len(solutions) >= max_population:
-                            return tree, solutions
+                            return solutions
                     else:
                         new_stack.append(new_node)
                         tree.add_node(new_node)
@@ -35,16 +37,16 @@ def generate_population(deliver_genes, max_depth=100, max_population=20):
         stack = new_stack
         depth += 1
 
-    return tree, solutions
+    return solutions
 
 
 @cache
-def expand(node: Node, deliver_genes):
+def expand(node: Node):
     expanded = []
 
-    i = 0
+    while len(expanded) != 2:
+        random.seed(datetime.now().second.real)
 
-    while i != 2:
         new_node = copy.deepcopy(node)
 
         rand = random.randint(0, 1)
@@ -52,27 +54,29 @@ def expand(node: Node, deliver_genes):
         if rand == 0:  # supply
             warehouse = new_node.warehouses[random.randint(0, len(new_node.warehouses) - 1)]
             product = random.choice(list(warehouse.products.keys()))
+
             if warehouse.products[product] == 0:
-                i += 1
                 continue
 
             quantity = random.randint(1, warehouse.products[product])
+            warehouse.products.update({product: warehouse.products[product] - quantity})
 
             new_gene = Gene(drone_id=random.randint(0, Problem.drones - 1), demand=quantity, node=warehouse,
                             product=product)
-            if True:  # constraints(new_gene):
-                new_node.info.add_gene(new_gene)
+            new_node.info.add_gene(new_gene)
+            new_node.info.update_internal()
+            if new_node.info.penalty == 0:
+                expanded.append(new_node)
 
         else:  # deliver
-            deliver_gene = deliver_genes[random.randint(0, len(deliver_genes) - 1)]
+            deliver_gene = new_node.deliver_genes.pop(random.randint(0, len(new_node.deliver_genes) - 1))
             deliver_gene.set_drone(random.randint(0, Problem.drones - 1))
 
-            if True:  # constraints(deliver_gene):
-                new_node.info.add_gene(deliver_gene)
+            new_node.info.add_gene(deliver_gene)
+            new_node.info.update_internal()
+            if new_node.info.penalty == 0:
                 new_node.supplies += 1
-
-        expanded.append(new_node)
-        i += 1
+                expanded.append(new_node)
 
     return remove_dups(tuple(expanded))
 
@@ -94,6 +98,12 @@ if __name__ == "__main__":
 
     deliver_genes = deliverGenes(Problem.orders)
 
-    tree, population = generate_population(deliver_genes, 80, 100)
+    population = []
 
-    print(population)
+    while len(population) < 20:
+        for solution in generate_population(deliver_genes, 30, 1):
+            population.append(solution)
+            print(repr(solution))
+            print(solution)
+            print()
+

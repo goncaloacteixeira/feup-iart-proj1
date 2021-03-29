@@ -1,7 +1,6 @@
+from constraints import check_delivery
 from objects.primitives import *
 from collections import Counter
-
-from src.constraints import *
 
 
 def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
