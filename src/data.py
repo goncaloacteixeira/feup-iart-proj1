@@ -1,6 +1,8 @@
 from constraints import check_delivery
 from objects.primitives import *
 from collections import Counter
+from math import exp
+from random import randint, seed
 
 
 def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
@@ -99,17 +101,63 @@ def initial_solution() -> Chromosome:
     return chromosome
 
 
+def hill_climbing(iterations: int = 100):
+    chromosome = initial_solution()
+    score = chromosome.update_internal()
+
+    for i in range(iterations):
+        candidate = chromosome.mutate()
+        candidate_score = candidate.update_internal()
+        if candidate_score >= score:
+            chromosome, score = candidate, candidate_score
+            print("Found a better one, score:", score)
+
+    return chromosome
+
+
+def simulated_annealing(input: Chromosome = None, iterations: int = 100, temp: int = 100):
+    best = initial_solution() if input is None else input
+    best_score = best.update_internal()
+
+    current, current_score = best, best_score
+
+    print("start score:", current_score)
+
+    for i in range(iterations):
+        candidate = current.mutate()
+        candidate_score = candidate.update_internal()
+        print("Candidate score:", candidate_score)
+        if candidate_score > best_score:
+            best, best_score = candidate, candidate_score
+            print("Found a better one, score:", best_score)
+        diff = candidate_score - current_score
+        t = temp / float(i + 1)
+        metropolis = exp(-diff / t)
+        if diff < 0 or randint(0, 1) < metropolis:
+            current, current_score = candidate, candidate_score
+
+    return best
+
+
 if __name__ == "__main__":
     [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
-     Problem.products] = parse_file("input_data/demo_altered.in")
+     Problem.products] = parse_file("input_data/mother_of_all_warehouses.in")
 
-    chromosome = initial_solution()
-    print(chromosome)
-    chromosome.update_internal()
-    print(check_delivery(chromosome.solution[0]))
+    # chromosome = initial_solution()
+    # print(chromosome)
+    # chromosome.update_internal()
+    #
+    # print(" ----- ")
+    #
+    # print("SCORE ", chromosome.penalty)
 
-    print(" ----- ")
+    # print("Hill Climbing")
+    # best = hill_climbing(iterations=1000)
+    # print(repr(best))
 
-    chromosome.update_internal()
+    print("Simulated annealing")
+    best = simulated_annealing(iterations=100, temp=50)
+    best = simulated_annealing(best, iterations=100, temp=50)
+    best = simulated_annealing(best, iterations=100, temp=50)
 
-    print("SCORE ", chromosome.score)
+    print(repr(best))

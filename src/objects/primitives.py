@@ -2,8 +2,10 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from typing import Union
+from copy import deepcopy
 
 from constraints import check_payload, check_delivery
+from objects.mutations import *
 
 
 class Point:
@@ -166,7 +168,7 @@ class Chromosome:
         return "\n".join([str(gene) for gene in self.genes])
 
     def __repr__(self) -> str:
-        return "[Chromosome] Number of genes: " + str(len(self.genes))
+        return "[Chromosome] Genes: {genes} | Penalty: {penalty} | Score: {score}".format(genes=len(self.genes), penalty=self.penalty, score=self.score)
 
     def add_gene(self, gene: Gene) -> None:
         self.genes.append(gene)
@@ -179,9 +181,15 @@ class Chromosome:
         for key, value in self.orders.items():
             print(value)
 
-    def update_internal(self):
+    def update_internal(self) -> float:
         """ Updates Solution, orders and value of this chromosome """
+        self.penalty = 0
+        self.solution = {}
+        self.orders = {}
+
         for gene in self.genes:
+            gene.turn = None
+            gene.penalty = 0
             self.__update_solution(gene)
             self.__update_orders(gene)
 
@@ -191,6 +199,19 @@ class Chromosome:
         for order_path in self.orders.values():
             cumulative += order_path.update_score()
         self.score = float(cumulative) / len(Problem.orders)
+
+        return self.score - self.penalty
+
+    def mutate(self):
+        mutated_chromosome = deepcopy(self)
+
+        mutation_prob = random.randint(0, 1)
+
+        mutation_functions = [unbalance_quantities, switch_drones, join_genes]
+
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions) - 1)](mutated_chromosome.genes)
+
+        return mutated_chromosome
 
     def __update_solution(self, gene: Gene):
         if not self.__path_exists(gene.droneID):

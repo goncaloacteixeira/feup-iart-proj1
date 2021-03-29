@@ -4,6 +4,7 @@ from search.Utils import *
 import random
 import copy
 from datetime import datetime
+from math import log
 
 
 def generate_population(deliver_genes, max_depth=100, max_population=20):
@@ -21,11 +22,18 @@ def generate_population(deliver_genes, max_depth=100, max_population=20):
         new_stack = []
         for s in stack:
             if s.info not in visited:
-                expanded = expand(s)
+                expanded = expand(s, int(3 / depth + 2))
+                print("expanded:", len(expanded), "depth:", depth)
                 for new_node in expanded:
                     if is_goal(new_node, len(deliver_genes)):
-                        solutions.append(new_node.info)
+                        new_node.info.update_internal()
+                        print("Potential Solution")
+                        if new_node.info.penalty == 0:
+                            solutions.append(new_node.info)
+                            print("Solutions:", len(solutions))
+
                         visited.append(new_node.info)
+
                         if len(solutions) >= max_population:
                             return solutions
                     else:
@@ -41,12 +49,11 @@ def generate_population(deliver_genes, max_depth=100, max_population=20):
 
 
 @cache
-def expand(node: Node):
+def expand(node: Node, number):
     expanded = []
+    random.seed(datetime.now().second.real)
 
-    while len(expanded) != 2:
-        random.seed(datetime.now().second.real)
-
+    while len(expanded) != number:
         new_node = copy.deepcopy(node)
 
         rand = random.randint(0, 1)
@@ -64,19 +71,18 @@ def expand(node: Node):
             new_gene = Gene(drone_id=random.randint(0, Problem.drones - 1), demand=quantity, node=warehouse,
                             product=product)
             new_node.info.add_gene(new_gene)
-            new_node.info.update_internal()
-            if new_node.info.penalty == 0:
-                expanded.append(new_node)
 
         else:  # deliver
+            if len(new_node.deliver_genes) == 0:
+                continue
+
             deliver_gene = new_node.deliver_genes.pop(random.randint(0, len(new_node.deliver_genes) - 1))
             deliver_gene.set_drone(random.randint(0, Problem.drones - 1))
 
             new_node.info.add_gene(deliver_gene)
-            new_node.info.update_internal()
-            if new_node.info.penalty == 0:
-                new_node.supplies += 1
-                expanded.append(new_node)
+            new_node.supplies += 1
+
+        expanded.append(new_node)
 
     return remove_dups(tuple(expanded))
 
@@ -100,10 +106,10 @@ if __name__ == "__main__":
 
     population = []
 
-    while len(population) < 20:
-        for solution in generate_population(deliver_genes, 30, 1):
-            population.append(solution)
-            print(repr(solution))
-            print(solution)
-            print()
+    for solution in generate_population(deliver_genes, 30, 20):
+        population.append(solution)
+        print(repr(solution))
+        print(solution)
+        print()
+
 
