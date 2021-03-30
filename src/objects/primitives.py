@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from typing import Union
 from copy import deepcopy
 
-from constraints import check_payload, check_delivery
-from objects.mutations import *
+from src.constraints import check_payload, check_delivery
+from src.objects.mutations import *
 
 
 class Point:
@@ -146,7 +146,6 @@ class OrderPath:
         self.steps.append(gene)
 
     def update_score(self) -> int:
-        # TODO Cada gene terá penalização, subtrai-se no final
         maximum = max(gene.turn for gene in self.steps)
         self.score = Problem.calculate_points(maximum)
         return self.score
@@ -213,7 +212,10 @@ class Chromosome:
 
         return mutated_chromosome
 
-    def __update_solution(self, gene: Gene):
+    def __update_solution(self, gene: Gene) -> None:
+        if gene.droneID is None:
+            return
+
         if not self.__path_exists(gene.droneID):
             self.__add_path(gene.droneID)
 
@@ -230,7 +232,6 @@ class Chromosome:
                        gene.node.position.distance(previous_position) +
                        1)
         path.add_step(gene)
-        pass
 
     def __update_orders(self, gene: Gene):
         if isinstance(gene.node, Order):

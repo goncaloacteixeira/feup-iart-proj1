@@ -50,11 +50,11 @@ def unbalance_quantities(genes: list) -> list:
     return genes
 
 
-# Junta 2 genes de deliver num mesmo, com um dos drones, escolhido aleatório
+# Junta 2 genes de deliver/supply num mesmo, com um dos drones, escolhido aleatório ficando na posição do 1º/2º
 def join_genes(genes: list) -> list:
     gene_dic = {}
 
-    gene_type = random.randint(0, 1)
+    gene_type = random.randint(0, 1) # 0-deliver 1-supply
 
     for i, gene in enumerate(genes):
         if gene_type == 0 and gene.demand > 0: continue
@@ -87,4 +87,3 @@ def join_genes(genes: list) -> list:
     genes.remove(g2)
 
     return genes
-

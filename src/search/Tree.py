@@ -1,4 +1,4 @@
-from objects.primitives import *
+from src.objects.primitives import *
 
 
 class Edge:

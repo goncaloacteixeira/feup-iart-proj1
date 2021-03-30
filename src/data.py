@@ -1,4 +1,3 @@
-from constraints import check_delivery
 from objects.primitives import *
 from collections import Counter
 from math import exp
