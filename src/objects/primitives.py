@@ -2,6 +2,10 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from typing import Union
+from copy import deepcopy
+
+from src.constraints import check_payload, check_delivery
+from src.objects.mutations import *
 
 
 class Point:
@@ -80,20 +84,27 @@ class Gene:
         self.node = node
         self.product = product
         self.turn = turn
-        #TODO add penalização
+        self.penalty = 0
 
     def __str__(self) -> str:
-        return "[ {droneID} | {demand} | {node} | {productID} | {turns} ]".format(droneID=self.droneID,
-                                                                                  demand=self.demand,
-                                                                                  node=self.node.id,
-                                                                                  productID=self.product.id,
-                                                                                  turns=self.turn)
+        return "[ {droneID} | {demand} | {productID} | {node} | {turns} | {penalty} ]".format(droneID=self.droneID,
+                                                                                              demand=self.demand,
+                                                                                              node=self.node.id,
+                                                                                              productID=self.product.id,
+                                                                                              turns=self.turn,
+                                                                                              penalty=self.penalty)
 
     def set_drone(self, drone: int) -> None:
         self.droneID = drone
 
     def set_turns(self, turns: int) -> None:
         self.turn = turns
+
+    def __eq__(self, o: Gene) -> bool:
+        return self.droneID == o.droneID and self.demand == o.demand and self.node.id == o.node.id and self.product.id == o.product.id and self.turn == o.turn
+
+    def __hash__(self) -> int:
+        return super().__hash__()
 
 
 class DronePath:
@@ -135,12 +146,7 @@ class OrderPath:
         self.steps.append(gene)
 
     def update_score(self) -> int:
-        #TODO Cada gene terá penalização, subtrai-se no final
-        #TODO pôr max() em baixo
-        maximum = -1
-        for gene in self.steps:
-            if gene.turn > maximum:
-                maximum = gene.turn
+        maximum = max(gene.turn for gene in self.steps)
         self.score = Problem.calculate_points(maximum)
         return self.score
 
@@ -155,12 +161,13 @@ class Chromosome:
         self.solution = solution
         self.orders = orders
         self.score = score
+        self.penalty = 0
 
     def __str__(self) -> str:
-        genes = ""
-        for gene in self.genes:
-            genes += str(gene) + "\n"
-        return genes
+        return "\n".join([str(gene) for gene in self.genes])
+
+    def __repr__(self) -> str:
+        return "[Chromosome] Genes: {genes} | Penalty: {penalty} | Score: {score}".format(genes=len(self.genes), penalty=self.penalty, score=self.score)
 
     def add_gene(self, gene: Gene) -> None:
         self.genes.append(gene)
@@ -173,20 +180,42 @@ class Chromosome:
         for key, value in self.orders.items():
             print(value)
 
-    def update_internal(self):
+    def update_internal(self) -> float:
         """ Updates Solution, orders and value of this chromosome """
+        self.penalty = 0
+        self.solution = {}
+        self.orders = {}
+
         for gene in self.genes:
+            gene.turn = None
+            gene.penalty = 0
             self.__update_solution(gene)
             self.__update_orders(gene)
 
-        #TODO passar pelos Drone Paths e adicionar penalizações
+        self.__update_penalties()
 
         cumulative = 0
         for order_path in self.orders.values():
             cumulative += order_path.update_score()
         self.score = float(cumulative) / len(Problem.orders)
 
-    def __update_solution(self, gene: Gene):
+        return self.score - self.penalty
+
+    def mutate(self):
+        mutated_chromosome = deepcopy(self)
+
+        mutation_prob = random.randint(0, 1)
+
+        mutation_functions = [unbalance_quantities, switch_drones, join_genes]
+
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions) - 1)](mutated_chromosome.genes)
+
+        return mutated_chromosome
+
+    def __update_solution(self, gene: Gene) -> None:
+        if gene.droneID is None:
+            return
+
         if not self.__path_exists(gene.droneID):
             self.__add_path(gene.droneID)
 
@@ -203,7 +232,6 @@ class Chromosome:
                        gene.node.position.distance(previous_position) +
                        1)
         path.add_step(gene)
-        pass
 
     def __update_orders(self, gene: Gene):
         if isinstance(gene.node, Order):
@@ -213,6 +241,11 @@ class Chromosome:
             order_path = self.__get_order(gene.node)
             order_path.add_step(gene)
         pass
+
+    def __update_penalties(self):
+        for drone_path in self.solution.values():
+            self.penalty += check_payload(drone_path, Problem.products, Problem.payload)
+            self.penalty += check_delivery(drone_path)
 
     def __path_exists(self, drone_id: int) -> bool:
         return True if drone_id in self.solution else False
@@ -231,3 +264,11 @@ class Chromosome:
 
     def __get_order(self, order: Order) -> OrderPath:
         return self.orders[order.id]
+
+    def __eq__(self, o: Chromosome) -> bool:
+        if len(self.genes) != len(o.genes): return False
+        for i in range(0, len(self.genes)):
+            if self.genes[i] != o.genes[i]: return False
+        return True
+
+

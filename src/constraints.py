@@ -1,34 +1,38 @@
+def check_turns(drone_path, turns):
+    final_turn = max(gene.turn for gene in drone_path.steps)  # aplicar penalty aos genes todos ou só ao ultimo?
+    if final_turn > turns:
+        return 1
+    return 0
 
-def check_turns(drone_path, problem):
-    final_turn = max(gene.turn for gene in drone_path.genes)
-    if final_turn > problem.turns:
-        return False
-    return True
 
+def check_payload(drone_path, products, prob_payload):
+    penalty = 1
+    penalty_applied = 0
 
-def check_payload(drone_path, problem):
-    #TODO check logo depois de adicionar a payload
     payload = 0
-    for gene in drone_path.genes:
-        if gene.demand > 0:
-            payload += gene.demand*problem.products[gene.productID].weight
-        else:
-            if payload > problem.payload:
-                return False
-            payload = 0
-    return True
+    for gene in drone_path.steps:
+        payload += gene.demand * products[gene.product.id].weight
+        if payload > prob_payload:
+            gene.penalty += penalty
+            penalty_applied += penalty
+    return penalty_applied
 
 
 def check_delivery(drone_path):
-    #TODO dict que mantem catálogo e nas entregas verifica se tem
-    for gene in drone_path.genes:
-        product_qt = 0
-        if gene.demand < 0:
-            for gene1 in drone_path.genes:  # checks previous genes
-                if gene == gene1:
-                    break
-                elif gene1.productID == gene.productID:
-                    product_qt += gene1.demand
-            if product_qt + gene.demand < 0:
-                return False
-    return True
+    penalty = 1
+    penalty_applied = 0
+
+    products = {}
+    for gene in drone_path.steps:
+        if gene.demand > 0:
+            if gene.product.id in products.keys():
+                products[gene.product.id] += gene.demand
+            else:
+                products[gene.product.id] = gene.demand
+        else:
+            if gene.product.id not in products.keys() or abs(gene.demand) > products[gene.product.id]:
+                gene.penalty += penalty
+                penalty_applied += penalty
+                continue
+            products[gene.product.id] += gene.demand
+    return penalty_applied
