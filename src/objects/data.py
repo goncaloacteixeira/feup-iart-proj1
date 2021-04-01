@@ -58,47 +58,9 @@ def initial_solution() -> Chromosome:
     return chromosome
 
 
-def hill_climbing(iterations: int = 100):
-    chromosome = initial_solution()
-    score = chromosome.update_internal()
-
-    for i in range(iterations):
-        candidate = chromosome.mutate()
-        candidate_score = candidate.update_internal()
-        if candidate_score >= score:
-            chromosome, score = candidate, candidate_score
-            print("Found a better one, score:", score)
-
-    return chromosome
-
-
-def simulated_annealing(input: Chromosome = None, iterations: int = 100, temp: int = 100):
-    best = initial_solution() if input is None else input
-    best_score = best.update_internal()
-
-    current, current_score = best, best_score
-
-    print("start score:", current_score)
-
-    for i in range(iterations):
-        candidate = current.mutate()
-        candidate_score = candidate.update_internal()
-        print("Candidate score:", candidate_score)
-        if candidate_score > best_score:
-            best, best_score = candidate, candidate_score
-            print("Found a better one, score:", best_score)
-        diff = candidate_score - current_score
-        t = temp / float(i + 1)
-        metropolis = exp(-diff / t)
-        if diff < 0 or randint(0, 1) < metropolis:
-            current, current_score = candidate, candidate_score
-
-    return best
-
-
 if __name__ == "__main__":
     [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
-     Problem.products] = parse_file("../input_data/mother_of_all_warehouses.in")
+     Problem.products] = parse_file("input_data/mother_of_all_warehouses.in")
 
     # chromosome = initial_solution()
     # print(chromosome)
@@ -117,4 +79,4 @@ if __name__ == "__main__":
     best = simulated_annealing(best, iterations=100, temp=50)
     best = simulated_annealing(best, iterations=100, temp=50)
 
-    # print(repr(best))
+    print(repr(best))

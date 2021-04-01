@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 from collections import Counter
 
-from src.search.constraints import check_payload, check_delivery
+from src.constraints import check_payload, check_delivery
 from src.objects.mutations import *
 
 
@@ -172,7 +172,7 @@ class Gene:
 
 
 class DronePath:
-    def __init__(self, drone_id: int, current_position: Point, steps: list[Gene] = None):
+    def __init__(self, drone_id: int, current_position: Point = Point(0, 0), steps: list[Gene] = None):
         if steps is None:
             steps = []
         self.drone_id = drone_id
@@ -330,7 +330,7 @@ class Chromosome:
         return True if drone_id in self.solution else False
 
     def __add_path(self, drone_id: int) -> None:
-        self.solution[drone_id] = DronePath(drone_id, Point(0, 0))
+        self.solution[drone_id] = DronePath(drone_id)
 
     def __get_path(self, drone_id: int) -> DronePath:
         return self.solution.get(drone_id)

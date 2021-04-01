@@ -68,13 +68,19 @@ def join_genes(genes: list) -> list:
     sample_genes = gene_dic[random.choice(list(gene_dic.keys()))]
     if max(len(x) for x in sample_genes) < 2:
         return genes
+    attempts = 20
     while len(sample_genes) < 2:
         sample_genes = gene_dic[random.choice(list(gene_dic.keys()))]
+        attempts -= 1
+        if attempts == 0: return genes
 
     g1_pos, g2_pos = 0, 0
+    attempts = 20
     while g1_pos == g2_pos:
         g1_pos = random.randint(0, len(sample_genes) - 1)
         g2_pos = random.randint(0, len(sample_genes) - 1)
+        attempts -= 1
+        if attempts == 0: return genes
 
     g1 = genes[sample_genes[g1_pos][0]]
     g2 = genes[sample_genes[g2_pos][0]]
