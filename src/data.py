@@ -1,7 +1,9 @@
-from objects.primitives import *
+from src.objects.primitives import *
 from collections import Counter
 from math import exp
 from random import randint, seed
+
+from src.search.greedy_solution import greedy_solution
 
 
 def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
@@ -159,4 +161,4 @@ if __name__ == "__main__":
     best = simulated_annealing(best, iterations=100, temp=50)
     best = simulated_annealing(best, iterations=100, temp=50)
 
-    print(repr(best))
+    # print(repr(best))
