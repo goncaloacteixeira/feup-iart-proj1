@@ -1,3 +1,4 @@
+from export import export_data
 from heuristics import simulated_annealing, hill_climbing, CoolingFunctions, iterative_simulated_annealing
 from objects.primitives import *
 from collections import Counter
@@ -101,7 +102,7 @@ def initial_solution() -> Chromosome:
 
 if __name__ == "__main__":
     [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
-     Problem.products] = parse_file("input_data/mother_of_all_warehouses.in")
+     Problem.products] = parse_file("input_data/demo_altered.in")
 
     # chromosome = initial_solution()
     # print(chromosome)
@@ -112,13 +113,15 @@ if __name__ == "__main__":
     # print("SCORE ", chromosome.penalty)
 
     chromosome = initial_solution()
+    chromosome.update_internal()
+    export_data(chromosome.solution, "solution.out")
 
-    print("Hill Climbing")
-    best = hill_climbing(initial_input=chromosome, iterations=50)
-    print(repr(best))
+    # print("Hill Climbing")
+    # best = hill_climbing(initial_input=chromosome, iterations=50)
+    # print(repr(best))
 
     # print("Simulated annealing")
-    # best = iterative_simulated_annealing(chromosome, CoolingFunctions.linear, iterations=10, sa_iterations=50)
+    # best = iterative_simulated_annealing(chromosome, CoolingFunctions.linear, iterations=3, sa_iterations=25)
     # best = simulated_annealing(best, iterations=100, temp=50)
     # best = simulated_annealing(best, iterations=100, temp=50)
     # print(repr(best))
