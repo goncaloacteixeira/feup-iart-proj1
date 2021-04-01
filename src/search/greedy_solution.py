@@ -1,38 +1,43 @@
-from src.objects.primitives import *
-from src.data import *
+from src.objects.data import *
 
 
 def greedy_solution():
+    orders, warehouses = Problem.orders.copy(), Problem.warehouses.copy()
 
     # initialize drone paths
     drone_path_list = {}
     for i in range(Problem.drones):
-        drone_path_list[i] = DronePath(i, Point(0, 0), [])
+        drone_path_list[i] = DronePath(i, Problem.warehouses[0].position)
 
     chromosome = Chromosome(None, drone_path_list)
 
+    orders_done = 0
     while not all_orders_complete():
-        attr_count = 0
         for i, drone_path in drone_path_list.items():
-            attr_count += best_shipment(drone_path, chromosome)
-            if attr_count == 0:
+            temp = best_shipment(drone_path, chromosome, orders, warehouses)
+            if temp < 0:
                 break
+            else:
+                orders_done += temp
+                print("Orders Completed: ", orders_done, "/", len(orders))
     return chromosome
 
 
-def best_shipment(drone_path: DronePath, chromosome):
+def best_shipment(drone_path: DronePath, chromosome: Chromosome, orders: list[Order], warehouses: list[Warehouse]) -> int:
     shipments: list[Shipment] = []
-    for order in Problem.orders:
+
+    for order in orders:
         if not order.complete():
-            for warehouse in Problem.warehouses:
+            for warehouse in warehouses:
                 shipment = Shipment(drone_path, order, warehouse)
                 if shipment.has_products() and drone_path.turns + shipment.turns <= Problem.turns:
                     shipments.append(shipment)
     if len(shipments) == 0:
-        return 0
+        return -1
     shipments = sorted(shipments, key=lambda shipment: -shipment.score)
-    shipments[0].execute(chromosome)
-    return 1
+    order_complete = shipments[0].execute(chromosome)
+    print("Sent Shipment with Drone", drone_path.drone_id, ", order", shipments[0].order.id)
+    return order_complete
 
 
 def all_orders_complete():
@@ -43,8 +48,7 @@ def all_orders_complete():
 
 
 if __name__ == "__main__":
-    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
-     Problem.products] = parse_file("../input_data/redundancy.in")
+    Problem.read_file("../input_data/redundancy.in")
 
     chromosome = greedy_solution()
 

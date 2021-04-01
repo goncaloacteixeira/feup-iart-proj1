@@ -1,10 +1,9 @@
 from functools import cache
-from src.data import *
+from src.objects.data import *
 from Utils import *
 import random
 import copy
 from datetime import datetime
-from math import log
 
 
 def generate_population(deliver_genes, max_depth=100, max_population=20):
