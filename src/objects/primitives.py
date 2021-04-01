@@ -319,7 +319,7 @@ class Shipment:
     def create(self):
         prods: list[tuple[Product, int]] = []
         for product, quantity in self.order.products.items():
-            available = min(quantity, self.warehouse.products[product])
+            available = min(quantity, self.warehouse.products.get(product, 0))
             if available > 0:
                 prods.append((product, available))
 

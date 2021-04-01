@@ -44,7 +44,7 @@ def all_orders_complete():
 
 if __name__ == "__main__":
     [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
-     Problem.products] = parse_file("../input_data/demo_altered.in")
+     Problem.products] = parse_file("../input_data/redundancy.in")
 
     chromosome = greedy_solution()
 
