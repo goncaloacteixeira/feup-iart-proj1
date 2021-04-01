@@ -8,6 +8,8 @@ def export_data(drone_paths, filename):
                             product=step.product.id, number=abs(step.demand))
                 for path in paths for step in path.steps]
 
+    commands.insert(0, str(len(commands)))
+
     f.write("\n".join(commands))
     f.close()
     return commands
