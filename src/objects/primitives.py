@@ -2,10 +2,10 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from typing import Union
-from copy import deepcopy
+from collections import Counter
 
-from constraints import check_payload, check_delivery
 from objects.mutations import *
+from search.constraints import *
 
 
 class Point:
@@ -36,6 +36,19 @@ class Spot(ABC):
         self.position = position
         self.products = products
 
+    def add_products(self, products: dict):
+        for product, quantity in products.items():
+            if product in self.products:
+                self.products[product] += quantity
+            else:
+                self.products[product] = quantity
+
+    def remove_products(self, products: dict):
+        for product, quantity in products.items():
+            self.products[product] -= quantity
+            if self.products[product] == 0:
+                self.products.pop(product)
+
 
 class Warehouse(Spot):
     def __init__(self, id: int, position: Point, products: dict):
@@ -52,6 +65,7 @@ class Warehouse(Spot):
 class Order(Spot):
     def __init__(self, id: int, position: Point, products: dict):
         super().__init__(id, position, products)
+        self.product_weight = sum(p.weight * q for p, q in self.products.items())
 
     def __str__(self) -> str:
         products = ""
@@ -59,6 +73,9 @@ class Order(Spot):
             products += str(product) + " quantity=" + str(quantity) + "\n"
         return "[ORDER {id}] - position={position}\n{products}" \
             .format(id=self.id, position=self.position, products=products)
+
+    def complete(self):
+        return not self.products
 
 
 class Problem:
@@ -75,6 +92,53 @@ class Problem:
     @staticmethod
     def calculate_points(turn: int) -> int:
         return math.ceil(((Problem.turns - turn) / Problem.turns) * 100)
+
+    # "../input_data/redundancy.in"
+    @staticmethod
+    def read_file(file_path: str):
+        [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
+         Problem.products] = Problem.parse_file(file_path)
+
+    @staticmethod
+    def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
+        with open(filename, 'r') as file:
+            # header
+            n_rows, n_cols, n_drones, max_turns, max_payload = [int(x) for x in file.readline().split(" ")]
+
+            # products
+            n_products = int(file.readline())
+            product_weights = list(map(int, file.readline().split(" ")))
+            # to ensure the number of products corresponds to the actual read weights
+            assert n_products == len(product_weights)
+            products = [Product(i, weight) for i, weight in enumerate(product_weights)]
+
+            # warehouses
+            num_warehouses = int(file.readline())
+            warehouses = []
+            for i in range(num_warehouses):
+                x, y = map(int, file.readline().split(" "))
+                n_products_warehouse = list(map(int, file.readline().split(" ")))
+                # to ensure the products are listed on the warehouse
+                assert n_products == len(n_products_warehouse)
+                # stores the warehouse products on a dict {Product -> quantity: int}
+                warehouse_products = {product: n for product, n in zip(products, n_products_warehouse)}
+                warehouse = Warehouse(i, Point(x, y), warehouse_products)
+                warehouses.append(warehouse)
+
+            # order
+            order_list = []
+            n_orders = int(file.readline())
+            for i in range(n_orders):
+                x, y = map(int, file.readline().split(" "))
+                n_products_in_order = int(file.readline())
+                order_products = list(map(int, file.readline().split(" ")))
+                # to ensure the number of products in order actually corresponds to the number of products listed
+                assert n_products_in_order == len(order_products)
+                order_products = [products[x] for x in order_products]
+                order = Order(i, Point(x, y), dict(Counter(order_products)))
+                order_list.append(order)
+
+        return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list, products
 
 
 class Gene:
@@ -108,11 +172,14 @@ class Gene:
 
 
 class DronePath:
-    def __init__(self, drone_id: int, steps: list[Gene] = None):
+    def __init__(self, drone_id: int, current_position: Point = Point(0, 0), steps: list[Gene] = None):
         if steps is None:
             steps = []
         self.drone_id = drone_id
         self.steps = steps
+        self.shipments = []
+        self.current_position = current_position
+        self.turns = 0
 
     def __str__(self) -> str:
         print("DRONE ", self.drone_id)
@@ -127,6 +194,15 @@ class DronePath:
 
     def add_step(self, gene: Gene):
         self.steps.append(gene)
+
+    def set_position(self, position: Point):
+        self.current_position = position
+
+    def add_shipment(self, shipment):
+        self.shipments.append(shipment)
+
+    def add_turns(self, turns):
+        self.turns += turns
 
 
 class OrderPath:
@@ -167,7 +243,9 @@ class Chromosome:
         return "\n".join([str(gene) for gene in self.genes])
 
     def __repr__(self) -> str:
-        return "[Chromosome] Genes: {genes} | Penalty: {penalty} | Score: {score}".format(genes=len(self.genes), penalty=self.penalty, score=self.score)
+        return "[Chromosome] Genes: {genes} | Penalty: {penalty} | Score: {score}".format(genes=len(self.genes),
+                                                                                          penalty=self.penalty,
+                                                                                          score=self.score)
 
     def add_gene(self, gene: Gene) -> None:
         self.genes.append(gene)
@@ -208,7 +286,8 @@ class Chromosome:
 
         mutation_functions = [unbalance_quantities, switch_drones, join_genes]
 
-        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions) - 1)](mutated_chromosome.genes)
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions) - 1)](
+            mutated_chromosome.genes)
 
         return mutated_chromosome
 
@@ -272,3 +351,75 @@ class Chromosome:
         return True
 
 
+class Shipment:
+    def __init__(self, drone_path: DronePath, order: Order, warehouse: Warehouse):
+        self.drone_path = drone_path
+        self.order = order
+        self.warehouse = warehouse
+        self.products: dict[Product, int] = {}
+        self.product_weight = 0
+        self.turns = 0
+        self.score = 0
+        self.accomplishment = 0
+        self.wh_distance = 0
+        self.ord_distance = 0
+
+        self.create()
+
+    def create(self):
+        prods: list[tuple[Product, int]] = []
+        for product, quantity in self.order.products.items():
+            available = min(quantity, self.warehouse.products.get(product, 0))
+            if available > 0:
+                prods.append((product, available))
+
+        prods = sorted(prods, key=lambda p: -p[0].weight)
+        drone_payload = Problem.payload
+        carrying: dict[Product, int] = {}
+
+        for product, quantity in prods:
+            while quantity > 0:
+                if product.weight <= drone_payload:
+                    drone_payload -= product.weight
+                    if product in carrying.keys():
+                        carrying[product] += 1
+                    else:
+                        carrying[product] = 1
+                    quantity -= 1
+                else:
+                    break
+
+        self.products = carrying
+        self.product_weight = sum(p.weight * q for p, q in self.products.items())
+        self.accomplishment = self.product_weight / self.order.product_weight
+
+        self.calculate_score()
+
+    def calculate_score(self):
+        self.wh_distance = self.drone_path.current_position.distance(self.warehouse.position)
+        self.ord_distance = self.warehouse.position.distance(self.order.position)
+        self.turns = self.wh_distance + self.ord_distance + len(self.products) * 2
+        self.score = self.accomplishment / self.turns
+
+    def has_products(self):
+        return len(self.products) > 0
+
+    def execute(self, chromosome):
+        self.warehouse.remove_products(self.products)
+        self.order.remove_products(self.products)
+        self.drone_path.set_position(self.order.position)
+        self.drone_path.add_shipment(self)
+
+        # update chromosome load genes
+        for product, quantity in self.products.items():
+            chromosome.add_gene(
+                Gene(self.drone_path.drone_id, quantity, self.warehouse, product, self.drone_path.turns + 1))
+
+        self.drone_path.add_turns(self.turns)
+
+        # update chromosome unload genes
+        for product, quantity in self.products.items():
+            chromosome.add_gene(
+                Gene(self.drone_path.drone_id, -quantity, self.order, product, self.drone_path.turns + 1))
+
+        return int(self.order.complete())

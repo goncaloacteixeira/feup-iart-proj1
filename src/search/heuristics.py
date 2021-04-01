@@ -42,7 +42,7 @@ def plot_simulated_annealing(data):
     plt.show()
 
 
-def hill_climbing(initial_input, iterations: int = 100):
+def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosome:
     chromosome = initial_input
     score = chromosome.update_internal()
 
@@ -114,8 +114,8 @@ def simulated_annealing(initial_value: Chromosome, cooling_function, iterations:
 
 def iterative_simulated_annealing(initial_input, cooling_function, iterations: int = 3, sa_iterations: int = 100, temp: int = 100):
     data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
-    for i in range(1, iterations + 1):
-        cumulative = i*sa_iterations + 1
+    for i in range(iterations):
+        cumulative = i*sa_iterations
 
         initial_input = simulated_annealing(initial_input, cooling_function, sa_iterations, temp, cumulative=cumulative, data=data)
         plot_simulated_annealing(data)
