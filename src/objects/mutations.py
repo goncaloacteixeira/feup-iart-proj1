@@ -66,6 +66,8 @@ def join_genes(genes: list) -> list:
             gene_dic[(gene.node, gene.product)].append((i, gene))
 
     sample_genes = gene_dic[random.choice(list(gene_dic.keys()))]
+
+    # TODO Comer esparguete
     if max(len(x) for x in sample_genes) < 2:
         return genes
     attempts = 20

@@ -1,4 +1,4 @@
-from src.objects.data import *
+from objects.primitives import *
 
 
 def greedy_solution():

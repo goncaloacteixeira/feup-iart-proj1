@@ -1,6 +1,4 @@
-from src.objects.primitives import *
-from math import exp
-from random import randint
+from objects.primitives import *
 
 
 def deliverGenes(orders) -> list[Gene]:
@@ -59,8 +57,8 @@ def initial_solution() -> Chromosome:
 
 
 if __name__ == "__main__":
-    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
-     Problem.products] = parse_file("input_data/mother_of_all_warehouses.in")
+    # [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
+    #  Problem.products] = parse_file("input_data/mother_of_all_warehouses.in")
 
     # chromosome = initial_solution()
     # print(chromosome)
@@ -75,8 +73,8 @@ if __name__ == "__main__":
     # print(repr(best))
 
     print("Simulated annealing")
-    best = simulated_annealing(iterations=100, temp=50)
-    best = simulated_annealing(best, iterations=100, temp=50)
-    best = simulated_annealing(best, iterations=100, temp=50)
+    # best = simulated_annealing(iterations=100, temp=50)
+    # best = simulated_annealing(best, iterations=100, temp=50)
+    # best = simulated_annealing(best, iterations=100, temp=50)
 
-    print(repr(best))
+    # print(repr(best))
