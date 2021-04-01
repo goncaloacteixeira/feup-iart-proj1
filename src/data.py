@@ -1,4 +1,4 @@
-from heuristics import simulated_annealing, hill_climbing, CoolingFunctions
+from heuristics import simulated_annealing, hill_climbing, CoolingFunctions, iterative_simulated_annealing
 from objects.primitives import *
 from collections import Counter
 
@@ -111,15 +111,14 @@ if __name__ == "__main__":
     #
     # print("SCORE ", chromosome.penalty)
 
-    print("Hill Climbing")
-
     chromosome = initial_solution()
 
-    # best = hill_climbing(initial_input=chromosome, iterations=50)
-    # print(repr(best))
+    print("Hill Climbing")
+    best = hill_climbing(initial_input=chromosome, iterations=50)
+    print(repr(best))
 
-    print("Simulated annealing")
-    best = simulated_annealing(chromosome, CoolingFunctions.quadratic)
+    # print("Simulated annealing")
+    # best = iterative_simulated_annealing(chromosome, CoolingFunctions.linear, iterations=10, sa_iterations=50)
     # best = simulated_annealing(best, iterations=100, temp=50)
     # best = simulated_annealing(best, iterations=100, temp=50)
     # print(repr(best))
