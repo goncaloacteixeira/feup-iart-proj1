@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from typing import Union
 from copy import deepcopy
 
-from src.constraints import check_payload, check_delivery
-from src.objects.mutations import *
+from constraints import check_payload, check_delivery
+from objects.mutations import *
 
 
 class Point:
