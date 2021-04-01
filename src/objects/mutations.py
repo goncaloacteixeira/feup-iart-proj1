@@ -1,18 +1,19 @@
-import random
+from numpy import random
 from datetime import datetime
 from copy import deepcopy
 
 
 # Trocar drones de 2 alelos para alterar trajetos (funciona com drones nulos)
+
 def switch_drones(genes: list) -> list:
     random.seed(datetime.now().second.real)
 
-    drone1, drone2 = 0, 0
-    gene1, gene2 = 0, 0
+    gene2, drone2 = 0, -1
+    gene1 = random.randint(0, len(genes) - 1)
+    drone1 = genes[gene1].droneID
+
     while drone1 == drone2:
-        gene1 = random.randint(0, len(genes) - 1)
         gene2 = random.randint(0, len(genes) - 1)
-        drone1 = genes[gene1].droneID
         drone2 = genes[gene2].droneID
 
     genes[gene1].set_drone(drone2)
@@ -30,6 +31,9 @@ def unbalance_quantities(genes: list) -> list:
             supplies[(gene.node, gene.product)] = [(i, gene)]
         else:
             supplies[(gene.node, gene.product)].append((i, gene))
+
+    # new_dict = {k: v for (k, v) in supplies.items() if len(v) > 1}
+    # TODO falta escolher um dos de cima e apagar 3 linhas abaixo
 
     supply_genes = supplies[random.choice(list(supplies.keys()))]
     while len(supply_genes) < 2:
