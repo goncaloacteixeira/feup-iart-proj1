@@ -15,7 +15,7 @@ def selection(pop, scores, k=3) -> Chromosome:
     selection_ix = random.randint(len(pop))
     for ix in random.randint(0, len(pop), k-1):
         # check if better (e.g. perform a tournament)
-        if scores[ix] < scores[selection_ix]:
+        if scores[ix] > scores[selection_ix]:
             selection_ix = ix
     return pop[selection_ix]
 

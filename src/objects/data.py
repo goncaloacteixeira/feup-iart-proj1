@@ -1,21 +1,22 @@
-from objects.primitives import *
+import math
+import objects.primitives as prim
 
 
-def deliverGenes(orders) -> list[Gene]:
+def deliverGenes(orders) -> list[prim.Gene]:
     list = []
     i = -1
     for order in orders:
         i += 1
         for product, quantity in order.products.items():
             remaining = quantity
-            max_product = math.floor(Problem.payload / product.weight)  # max products per drone
+            max_product = math.floor(prim.Problem.payload / product.weight)  # max products per drone
             drones_needed = math.ceil(quantity / max_product)
 
             for i in range(drones_needed - 1):
                 remaining -= max_product
-                list.append(Gene(None, -max_product, order, product))
+                list.append(prim.Gene(None, -max_product, order, product))
             if remaining != 0:
-                list.append(Gene(None, -remaining, order, product))
+                list.append(prim.Gene(None, -remaining, order, product))
 
     return list
 
@@ -29,12 +30,12 @@ def calculate_product(warehouse_available, needed) -> tuple[int, int]:
         return 0, still_need
 
 
-def initial_solution() -> Chromosome:
-    wh_copy = Problem.warehouses.copy()
-    chromosome = Chromosome()
+def initial_solution() -> prim.Chromosome:
+    wh_copy = prim.Problem.warehouses.copy()
+    chromosome = prim.Chromosome()
     drone = 0
 
-    supplier_genes = deliverGenes(Problem.orders)
+    supplier_genes = deliverGenes(prim.Problem.orders)
     for gene in supplier_genes:
         remaining_product = abs(gene.demand)  # demand product
         for warehouse in wh_copy:
@@ -42,7 +43,7 @@ def initial_solution() -> Chromosome:
                 wh_quantity, needed = calculate_product(warehouse.products.get(gene.product), remaining_product)
                 if wh_quantity < warehouse.products.get(gene.product):
                     chromosome.add_gene(
-                        Gene(drone, remaining_product - needed, warehouse, gene.product))  # add gene with pick up
+                        prim.Gene(drone, remaining_product - needed, warehouse, gene.product))  # add gene with pick up
 
                     warehouse.products.update({gene.product: wh_quantity})  # updates warehouse product
                     remaining_product = needed  # decrement demand product
@@ -50,7 +51,7 @@ def initial_solution() -> Chromosome:
                     gene.set_drone(drone)
                     chromosome.add_gene(gene)
                     drone += 1
-                    if drone > Problem.drones - 1:
+                    if drone > prim.Problem.drones - 1:
                         drone = 0
                     break
     return chromosome
