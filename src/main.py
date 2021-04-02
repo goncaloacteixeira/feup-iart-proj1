@@ -6,7 +6,7 @@ import search.greedy_solution as greed
 import search.genetic_algorithm as genet
 
 if __name__ == "__main__":
-    prim.Problem.read_file("./input_data/demo_altered.in")
+    prim.Problem.read_file("./input_data/busy_day.in")
 
     chrom1 = greed.greedy_solution(False)
     chrom2 = greed.greedy_solution(False)
@@ -15,8 +15,10 @@ if __name__ == "__main__":
     print("----")
     print(chrom2)
 
-    # best, best_eval = genet.genetic_algorithm(50, 50, 0.1, 0.1)
-    #
-    # print("BEST: ", best_eval, "\nCHROMOSSOME:\n", best)
+    # solution = heur.hill_climbing(chromosome, 3000)
+    solution = heur.iterative_simulated_annealing(chromosome, heur.CoolingFunctions.linear, 5, 1000)
+
+    print(solution)
+    print("SCORE:", solution.update_internal(), "| PENALTY:", solution.penalty)
 
     pass

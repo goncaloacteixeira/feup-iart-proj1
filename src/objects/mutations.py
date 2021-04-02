@@ -52,6 +52,18 @@ def unbalance_quantities(genes: list) -> list:
     return genes
 
 
+# limpar genes com penalty diferente de 0
+def cleanse_genes(genes: list) -> list:
+    return list(filter(lambda x: x.penalty == 0, genes))
+
+
+# remove o gene com maior penalty
+def pop_gene(genes: list) -> list:
+    sorted_genes = sorted(genes, key=lambda x: -x.penalty)
+    genes.remove(sorted_genes[0])
+    return genes
+
+
 # Junta 2 genes de deliver/supply num mesmo, com um dos drones, escolhido aleatório ficando na posição do 1º/2º
 def join_genes(genes: list) -> list:
     gene_dic = {}
