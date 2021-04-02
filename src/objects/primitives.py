@@ -1,6 +1,7 @@
 from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
+import copy
 from typing import Union
 from collections import Counter
 
@@ -280,13 +281,11 @@ class Chromosome:
         return self.score - self.penalty
 
     def mutate(self):
-        mutated_chromosome = deepcopy(self)
+        mutated_chromosome = copy.deepcopy(self)
 
-        mutation_prob = random.randint(0, 1)
+        mutation_functions = [unbalance_quantities, switch_drones, join_genes, pop_gene, cleanse_genes]
 
-        mutation_functions = [unbalance_quantities, switch_drones, join_genes]
-
-        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions) - 1)](
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](
             mutated_chromosome.genes)
 
         return mutated_chromosome
@@ -325,6 +324,7 @@ class Chromosome:
         for drone_path in self.solution.values():
             self.penalty += check_payload(drone_path, Problem.products, Problem.payload)
             self.penalty += check_delivery(drone_path)
+            self.penalty += check_turns(drone_path, Problem.turns)
 
     def __path_exists(self, drone_id: int) -> bool:
         return True if drone_id in self.solution else False
@@ -349,6 +349,9 @@ class Chromosome:
         for i in range(0, len(self.genes)):
             if self.genes[i] != o.genes[i]: return False
         return True
+
+    def __hash__(self):
+        return super().__hash__()
 
 
 class Shipment:
