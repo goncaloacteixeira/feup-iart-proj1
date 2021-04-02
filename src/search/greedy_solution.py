@@ -20,7 +20,8 @@ def greedy_solution(use_best: bool = True):
                 break
             else:
                 orders_done += temp
-                print("Orders Completed: ", orders_done, "/", len(orders))
+                # print("Orders Completed: ", orders_done, "/", len(orders))
+    print("Found Solution")
     return chromosome
 
 
@@ -51,7 +52,7 @@ def one_shipment(drone_path: DronePath, chromosome: Chromosome, orders: list[Ord
     warehouse = random.choice(available_wh)
     shipment = Shipment(drone_path, order, warehouse)
     order_complete = shipment.execute(chromosome)
-    print("Sent Shipment with Drone", drone_path.drone_id, ", order", shipment.order.id)
+    # print("Sent Shipment with Drone", drone_path.drone_id, ", order", shipment.order.id)
     return order_complete
 
 

@@ -183,7 +183,7 @@ class Problem:
 
 class Gene:
     def __init__(self, drone_id: Union[int, None], demand: int, node: Spot, product: Product, turn: int = None):
-        self.droneID = drone_id
+        self.drone_id = drone_id
         self.demand = demand
         self.node = node
         self.product = product
@@ -191,7 +191,7 @@ class Gene:
         self.penalty = 0
 
     def __str__(self) -> str:
-        return "[ {droneID} | {demand} | {productID} | {node} | {turns} | {penalty} ]".format(droneID=self.droneID,
+        return "[ {droneID} | {demand} | {productID} | {node} | {turns} | {penalty} ]".format(droneID=self.drone_id,
                                                                                               demand=self.demand,
                                                                                               node=self.node.id,
                                                                                               productID=self.product.id,
@@ -199,13 +199,13 @@ class Gene:
                                                                                               penalty=self.penalty)
 
     def set_drone(self, drone: int) -> None:
-        self.droneID = drone
+        self.drone_id = drone
 
     def set_turns(self, turns: int) -> None:
         self.turn = turns
 
     def __eq__(self, o: Gene) -> bool:
-        return self.droneID == o.droneID and self.demand == o.demand and self.node.id == o.node.id and self.product.id == o.product.id and self.turn == o.turn
+        return self.drone_id == o.drone_id and self.demand == o.demand and self.node.id == o.node.id and self.product.id == o.product.id and self.turn == o.turn
 
     def __hash__(self) -> int:
         return super().__hash__()
@@ -330,13 +330,13 @@ class Chromosome:
         return mutated_chromosome
 
     def __update_solution(self, gene: Gene) -> None:
-        if gene.droneID is None:
+        if gene.drone_id is None:
             return
 
-        if not self.__path_exists(gene.droneID):
-            self.__add_path(gene.droneID)
+        if not self.__path_exists(gene.drone_id):
+            self.__add_path(gene.drone_id)
 
-        path = self.__get_path(gene.droneID)
+        path = self.__get_path(gene.drone_id)
         last_step = path.get_last_step()
         if last_step is None:
             previous_position = Problem.warehouses[0].position

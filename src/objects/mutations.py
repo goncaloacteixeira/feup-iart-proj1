@@ -9,11 +9,11 @@ def switch_drones(genes: list) -> list:
 
     gene2, drone2 = 0, -1
     gene1 = random.randint(0, len(genes))
-    drone1 = genes[gene1].droneID
+    drone1 = genes[gene1].drone_id
 
     while drone1 == drone2:
         gene2 = random.randint(0, len(genes))
-        drone2 = genes[gene2].droneID
+        drone2 = genes[gene2].drone_id
 
     genes[gene1].set_drone(drone2)
     genes[gene2].set_drone(drone1)
@@ -32,6 +32,9 @@ def unbalance_quantities(genes: list) -> list:
             supplies[(gene.node, gene.product)].append((i, gene))
 
     supplies_filter = {k: v for (k, v) in supplies.items() if len(v) > 1}
+
+    if not supplies_filter:  # there aren't any 2 genes with same WH and item
+        return genes
 
     index = random.randint(0, len(supplies_filter))
     supply_genes = supplies_filter[list(supplies_filter.keys())[index]]
@@ -74,6 +77,10 @@ def join_genes(genes: list) -> list:
             gene_dic[(gene.node, gene.product)].append((i, gene))
 
     gene_filter = {k: v for (k, v) in gene_dic.items() if len(v) > 1}
+
+    if not gene_filter:  # there aren't any 2 genes with same WH and item
+        return genes
+
     index = random.randint(0, len(gene_filter))
     sample_genes = gene_filter[list(gene_filter.keys())[index]]
 
@@ -85,7 +92,7 @@ def join_genes(genes: list) -> list:
     g1: prim.Gene = genes[sample_genes[g1_pos][0]]
     g2: prim.Gene = genes[sample_genes[g2_pos][0]]
 
-    drone_id = g1.droneID if random.randint(0, 2) else g2.droneID
+    drone_id = g1.drone_id if random.randint(0, 2) else g2.drone_id
     demand = g1.demand + g2.demand
     node = g1.node
     product = g1.product

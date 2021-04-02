@@ -6,9 +6,9 @@ import search.greedy_solution as greed
 import search.genetic_algorithm as genet
 
 if __name__ == "__main__":
-    prim.Problem.read_file("./input_data/demo_altered.in")
+    prim.Problem.read_file("./input_data/mother_of_all_warehouses.in")
 
-    best, best_score = genet.genetic_algorithm(10, 30, 0.1, 0.1)
+    best, best_score = genet.genetic_algorithm(50, 10, 0.1, 0.1)
 
     # chrom1 = greed.greedy_solution(False)
     # chrom2 = greed.greedy_solution(False)
