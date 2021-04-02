@@ -2,7 +2,7 @@ from objects.primitives import *
 
 
 def greedy_solution(use_best: bool = True):
-    orders, warehouses = Problem.orders.copy(), Problem.warehouses.copy()
+    orders, warehouses = deepcopy(Problem.orders), deepcopy(Problem.warehouses)
 
     # initialize drone paths
     drone_path_list = {}
@@ -12,7 +12,7 @@ def greedy_solution(use_best: bool = True):
     chromosome = Chromosome(None, drone_path_list)
 
     orders_done = 0
-    while not all_orders_complete():
+    while not all_orders_complete(orders):
         for i, drone_path in drone_path_list.items():
             temp = best_shipment(drone_path, chromosome, orders, warehouses) if use_best else \
                    one_shipment(drone_path, chromosome, orders, warehouses)
@@ -55,17 +55,8 @@ def one_shipment(drone_path: DronePath, chromosome: Chromosome, orders: list[Ord
     return order_complete
 
 
-def all_orders_complete():
-    for order in Problem.orders:
+def all_orders_complete(orders: list[prim.Order]):
+    for order in orders:
         if not order.complete():
             return False
     return True
-
-
-if __name__ == "__main__":
-    Problem.read_file("../input_data/redundancy.in")
-
-    chromosome = greedy_solution()
-
-    print(chromosome)
-    print("SCORE:", chromosome.update_internal())
