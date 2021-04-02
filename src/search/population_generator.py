@@ -1,14 +1,15 @@
 from functools import cache
-from src.objects.data import *
+from objects.data import *
 from Utils import *
 import random
 import copy
+import objects.primitives as prim
 from datetime import datetime
 
 
 def generate_population(deliver_genes, max_depth=100, max_population=20):
-    root = Node(Chromosome())
-    root.warehouses = Problem.warehouses
+    root = Node(prim.Chromosome())
+    root.warehouses = prim.Problem.warehouses
     root.deliver_genes = deliver_genes
 
     solutions = []
@@ -67,7 +68,7 @@ def expand(node: Node, number):
             quantity = random.randint(1, warehouse.products[product])
             warehouse.products.update({product: warehouse.products[product] - quantity})
 
-            new_gene = Gene(drone_id=random.randint(0, Problem.drones - 1), demand=quantity, node=warehouse,
+            new_gene = prim.Gene(drone_id=random.randint(0, prim.Problem.drones - 1), demand=quantity, node=warehouse,
                             product=product)
             new_node.info.add_gene(new_gene)
 
@@ -76,7 +77,7 @@ def expand(node: Node, number):
                 continue
 
             deliver_gene = new_node.deliver_genes.pop(random.randint(0, len(new_node.deliver_genes) - 1))
-            deliver_gene.set_drone(random.randint(0, Problem.drones - 1))
+            deliver_gene.set_drone(random.randint(0, prim.Problem.drones - 1))
 
             new_node.info.add_gene(deliver_gene)
             new_node.supplies += 1
@@ -95,20 +96,3 @@ def remove_dups(nodes):
             visited.append(node.info)
             new_nodes.append(node)
     return new_nodes
-
-
-if __name__ == "__main__":
-    [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
-     Problem.products] = parse_file("../input_data/demo_altered.in")
-
-    deliver_genes = deliverGenes(Problem.orders)
-
-    population = []
-
-    for solution in generate_population(deliver_genes, 30, 20):
-        population.append(solution)
-        print(repr(solution))
-        print(solution)
-        print()
-
-
