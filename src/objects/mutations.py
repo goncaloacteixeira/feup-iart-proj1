@@ -9,11 +9,11 @@ def switch_drones(genes: list) -> list:
     random.seed(datetime.now().second.real)
 
     gene2, drone2 = 0, -1
-    gene1 = random.randint(0, len(genes) - 1)
+    gene1 = random.randint(0, len(genes))
     drone1 = genes[gene1].droneID
 
     while drone1 == drone2:
-        gene2 = random.randint(0, len(genes) - 1)
+        gene2 = random.randint(0, len(genes))
         drone2 = genes[gene2].droneID
 
     genes[gene1].set_drone(drone2)

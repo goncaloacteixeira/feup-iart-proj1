@@ -1,6 +1,7 @@
 from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Union
 from collections import Counter
 
@@ -31,7 +32,7 @@ class Product:
 
 class Spot(ABC):
     @abstractmethod
-    def __init__(self, id: int, position: Point, products: dict):
+    def __init__(self, id: int, position: Point, products: dict[Product, int]):
         self.id = id
         self.position = position
         self.products = products
@@ -51,7 +52,7 @@ class Spot(ABC):
 
 
 class Warehouse(Spot):
-    def __init__(self, id: int, position: Point, products: dict):
+    def __init__(self, id: int, position: Point, products: dict[Product, int]):
         super().__init__(id, position, products)
 
     def __str__(self) -> str:
@@ -60,6 +61,12 @@ class Warehouse(Spot):
             products += str(product) + " amount=" + str(amount) + "\n"
         return "[WAREHOUSE {id}] - position={position}\n{products}" \
             .format(id=self.id, position=self.position, products=products)
+
+    def has_any_product(self, products: dict) -> bool:
+        for k, v in products.items():
+            if self.products.get(k, -1) > 0:
+                return True
+        return False
 
 
 class Order(Spot):
@@ -88,6 +95,16 @@ class Problem:
     warehouses: list[Warehouse] = None
     orders: list[Order] = None
     products: list[Product] = None
+
+    def __init__(self, rows, cols, drones, turns, payload, warehouses, orders, products):
+        self.rows = rows
+        self.cols = cols
+        self.drones = drones
+        self.turns = turns
+        self.payload = payload
+        self.warehouses = warehouses
+        self.orders = orders
+        self.products = products
 
     @staticmethod
     def calculate_points(turn: int) -> int:
@@ -140,6 +157,18 @@ class Problem:
 
         return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list, products
 
+    # @staticmethod
+    # def copy() -> Problem:
+    #     rows = deepcopy(Problem.rows)
+    #     cols = deepcopy(Problem.cols)
+    #     drones = deepcopy(Problem.drones)
+    #     turns = deepcopy(Problem.turns)
+    #     payload = deepcopy(Problem.payload)
+    #     warehouses = deepcopy(Problem.warehouses)
+    #     orders = deepcopy(Problem.orders)
+    #     products = deepcopy(Problem.products)
+    #
+    #     return Problem()
 
 class Gene:
     def __init__(self, drone_id: Union[int, None], demand: int, node: Spot, product: Product, turn: int = None):
@@ -282,11 +311,9 @@ class Chromosome:
     def mutate(self):
         mutated_chromosome = deepcopy(self)
 
-        mutation_prob = random.randint(0, 1)
-
         mutation_functions = [unbalance_quantities, switch_drones, join_genes]
 
-        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions) - 1)](
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](
             mutated_chromosome.genes)
 
         return mutated_chromosome

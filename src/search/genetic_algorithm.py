@@ -1,13 +1,23 @@
 from objects.primitives import *
 from numpy import random
+import search.greedy_solution as greed
 
-
+# FIXME só cria 1 cromossoma, o resto está lixado porque usa os mesmos dados do problema
 def create_population(n_pop) -> list[Chromosome]:
-    pass
+    population = []
+    for i in range(n_pop):
+        population.append(greed.greedy_solution(False))
+    return population
 
 
 def best_individual(pop: list[Chromosome]) -> (Chromosome, float):
-    pass
+    current_best = (None, -9999)
+    for chromosome in pop:
+        score = chromosome.update_internal()
+        if score > current_best[1]:
+            current_best = chromosome, score
+    return current_best
+
 
 # tournament selection
 def selection(pop, scores, k=3) -> Chromosome:
@@ -20,15 +30,22 @@ def selection(pop, scores, k=3) -> Chromosome:
     return pop[selection_ix]
 
 
-def crossover(p1, p2, r_cross):
-    pass
+# TODO Fazer o algoritmo de crossover
+def crossover(p1, p2, r_cross) -> list[Chromosome]:
+    if random.random() <= r_cross:
+        return [p1, p2]
+        pass
+    return [p1, p2]
 
 
-def mutation(c, r_mut) -> list[Chromosome]:
-    pass
+def mutation(c: Chromosome, r_mut) -> Chromosome:
+    if random.random() <= r_mut:
+        new_c = c.mutate()
+        return new_c
+    return c
 
 
-def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut):
+def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
     # initial population of random bitstring
     pop = create_population(n_pop)
     # keep track of best solution
@@ -52,9 +69,9 @@ def genetic_algorithm(objective, n_iter, n_pop, r_cross, r_mut):
             # crossover and mutation
             for c in crossover(p1, p2, r_cross):
                 # mutation
-                mutation(c, r_mut)
+                new_c = mutation(c, r_mut)
                 # store for next generation
-                children.append(c)
+                children.append(new_c)
         # replace population
         pop = children
     return [best, best_eval]
