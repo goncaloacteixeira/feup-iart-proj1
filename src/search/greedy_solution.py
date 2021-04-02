@@ -1,7 +1,7 @@
 from objects.primitives import *
 
 
-def greedy_solution():
+def greedy_solution(use_best: bool = True):
     orders, warehouses = Problem.orders.copy(), Problem.warehouses.copy()
 
     # initialize drone paths
@@ -14,7 +14,8 @@ def greedy_solution():
     orders_done = 0
     while not all_orders_complete():
         for i, drone_path in drone_path_list.items():
-            temp = best_shipment(drone_path, chromosome, orders, warehouses)
+            temp = best_shipment(drone_path, chromosome, orders, warehouses) if use_best else \
+                   one_shipment(drone_path, chromosome, orders, warehouses)
             if temp < 0:
                 break
             else:
@@ -38,6 +39,19 @@ def best_shipment(drone_path: DronePath, chromosome: Chromosome, orders: list[Or
 
     order_complete = best_shipment.execute(chromosome)
     print("Sent Shipment with Drone", drone_path.drone_id, ", order", best_shipment.order.id)
+    return order_complete
+
+
+def one_shipment(drone_path: DronePath, chromosome: Chromosome, orders: list[Order], warehouses: list[Warehouse]) -> int:
+    not_completed = [order for order in orders if not order.complete()]
+    if not not_completed:
+        return -1
+    order = random.choice(not_completed)
+    available_wh = [wh for wh in warehouses if wh.has_any_product(order.products)]
+    warehouse = random.choice(available_wh)
+    shipment = Shipment(drone_path, order, warehouse)
+    order_complete = shipment.execute(chromosome)
+    print("Sent Shipment with Drone", drone_path.drone_id, ", order", shipment.order.id)
     return order_complete
 
 
