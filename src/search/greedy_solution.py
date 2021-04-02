@@ -24,19 +24,20 @@ def greedy_solution():
 
 
 def best_shipment(drone_path: DronePath, chromosome: Chromosome, orders: list[Order], warehouses: list[Warehouse]) -> int:
-    shipments: list[Shipment] = []
+    best = 0
+    best_shipment = None
 
     for order in orders:
         if not order.complete():
             for warehouse in warehouses:
                 shipment = Shipment(drone_path, order, warehouse)
-                if shipment.has_products() and drone_path.turns + shipment.turns <= Problem.turns:
-                    shipments.append(shipment)
-    if len(shipments) == 0:
+                if shipment.has_products() and drone_path.turns + shipment.turns <= Problem.turns and shipment.score > best:
+                    best, best_shipment = shipment.score, shipment
+    if best_shipment is None:
         return -1
-    shipments = sorted(shipments, key=lambda shipment: -shipment.score)
-    order_complete = shipments[0].execute(chromosome)
-    print("Sent Shipment with Drone", drone_path.drone_id, ", order", shipments[0].order.id)
+
+    order_complete = best_shipment.execute(chromosome)
+    print("Sent Shipment with Drone", drone_path.drone_id, ", order", best_shipment.order.id)
     return order_complete
 
 

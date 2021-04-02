@@ -9,11 +9,11 @@ def switch_drones(genes: list) -> list:
     random.seed(datetime.now().second.real)
 
     gene2, drone2 = 0, -1
-    gene1 = random.randint(0, len(genes) - 1)
+    gene1 = random.randint(0, len(genes))
     drone1 = genes[gene1].droneID
 
     while drone1 == drone2:
-        gene2 = random.randint(0, len(genes) - 1)
+        gene2 = random.randint(0, len(genes))
         drone2 = genes[gene2].droneID
 
     genes[gene1].set_drone(drone2)
@@ -49,6 +49,18 @@ def unbalance_quantities(genes: list) -> list:
     g1.demand = random.randint(1, demand)
     g2.demand = demand - g1.demand
 
+    return genes
+
+
+# limpar genes com penalty diferente de 0
+def cleanse_genes(genes: list) -> list:
+    return list(filter(lambda x: x.penalty == 0, genes))
+
+
+# remove o gene com maior penalty
+def pop_gene(genes: list) -> list:
+    sorted_genes = sorted(genes, key=lambda x: -x.penalty)
+    genes.remove(sorted_genes[0])
     return genes
 
 

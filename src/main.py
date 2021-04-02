@@ -2,16 +2,14 @@ import objects.data as dat
 import objects.mutations as mut
 import objects.primitives as prim
 import search.heuristics as heur
+import search.greedy_solution as greed
 
 if __name__ == "__main__":
-    prim.Problem.read_file("./input_data/demo_altered.in")
+    prim.Problem.read_file("./input_data/busy_day.in")
 
     chromosome = dat.initial_solution()
     chromosome.update_internal()
     print(chromosome)
-
-    mut.join_genes(chromosome.genes)
-
 
     # supplies = {}
     # for i, gene in enumerate(chromossome.genes):
@@ -26,10 +24,10 @@ if __name__ == "__main__":
     # for key, value in iterable:
     #     print(key)
 
-    solution = heur.hill_climbing(chromosome, 3000)
-    # solution = heur.iterative_simulated_annealing(chromosome, heur.CoolingFunctions.linear, 30, 100)
+    # solution = heur.hill_climbing(chromosome, 3000)
+    solution = heur.iterative_simulated_annealing(chromosome, heur.CoolingFunctions.linear, 5, 1000)
 
-    # print(chromosome)
-    # print("SCORE:", chromosome.update_internal())
+    print(solution)
+    print("SCORE:", solution.update_internal(), "| PENALTY:", solution.penalty)
 
     pass
