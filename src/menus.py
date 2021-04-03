@@ -11,7 +11,7 @@ import search.genetic_algorithm as gen
 
 
 def pause() -> None:
-    input("press any key to continue...")
+    input("press Enter to continue...")
 
 
 def read_input(message: str,
@@ -92,6 +92,7 @@ def _genetic() -> None:
     print("Starting Genetic Algorithm")
     start = timer()
     best, best_score = gen.genetic_algorithm(generations, initial_pop, r_cross, r_mut)
+    print("Out of Genetic")
     end_greedy = timer()
     print(repr(best))
     print("Took:", (end_greedy - start), "seconds")

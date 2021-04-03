@@ -39,7 +39,7 @@ def best_shipment(drone_path: DronePath, chromosome: Chromosome, orders: list[Or
         return -1
 
     order_complete = best_shipment.execute(chromosome)
-    print("Sent Shipment with Drone", drone_path.drone_id, ", order", best_shipment.order.id)
+    # print("Sent Shipment with Drone", drone_path.drone_id, ", order", best_shipment.order.id)
     return order_complete
 
 
