@@ -1,19 +1,26 @@
+from copy import deepcopy
+
 from numpy import random
 import objects.primitives as prim
 
 
 # Trocar drones de 2 alelos para alterar trajetos (funciona com drones nulos)
 def switch_drones(genes: list) -> list:
-    gene2, drone2 = 0, -1
-    gene1 = random.randint(0, len(genes))
-    drone1 = genes[gene1].drone_id
+    gene1_ind = random.randint(0, len(genes))
+    drone1 = genes[gene1_ind].drone_id
 
-    while drone1 == drone2:
-        gene2 = random.randint(0, len(genes))
-        drone2 = genes[gene2].drone_id
+    # lista de genes com drone != drone 1
+    dif_drones: list[(int, prim.Gene)] = list(filter(lambda x: x[1].drone_id != drone1, enumerate(genes)))
 
-    genes[gene1].set_drone(drone2)
-    genes[gene2].set_drone(drone1)
+    if not dif_drones:
+        return genes
+
+    # escolher um dessa lista
+    gene2_ind, gene2 = dif_drones[random.randint(0, len(dif_drones))] if len(dif_drones) > 1 else dif_drones[0]
+    drone2 = gene2.drone_id
+
+    genes[gene1_ind].set_drone(drone2)
+    genes[gene2_ind].set_drone(drone1)
 
     return genes
 
@@ -101,3 +108,19 @@ def join_genes(genes: list) -> list:
     genes.remove(g2)
 
     return genes
+
+
+# Adiciona um gene de um produto de um wh que não esteja
+def add_gene(genes: list):
+    # copy WH
+    warehouses = deepcopy(prim.Problem.warehouses)
+
+    # remover produtos que estão nos genes[]
+    for gene in genes:
+        product = gene.product
+        quantity = gene.demand
+
+
+    # escolher um produto e quantidade random
+    # adicionar a genes[] com drone = None
+    pass

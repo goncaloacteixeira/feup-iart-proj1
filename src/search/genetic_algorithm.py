@@ -35,7 +35,6 @@ def selection(pop, scores, k=3) -> Chromosome:
     return pop[selection_ix]
 
 
-# TODO Fazer o algoritmo de crossover
 def crossover(p1: Chromosome, p2: Chromosome, r_cross: float) -> list[Chromosome]:
     if random.random() <= r_cross:
         # ver tamanhos de ambos os cromossomas
@@ -43,7 +42,7 @@ def crossover(p1: Chromosome, p2: Chromosome, r_cross: float) -> list[Chromosome
         max_length = min(len(p1.genes), len(p2.genes))
 
         # escolher tamanho de 1 até o valor de cima
-        size = random.randint(1, max_length)
+        size = random.randint(1, max_length) if  max_length > 1 else 1
 
         # escolher indice inicial de genes entre ind 0 e len-tamanho de cima
         g1_ind = random.randint(0, len(p1.genes) - size + 1)
@@ -86,12 +85,12 @@ def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
     for gen in range(n_iter):
         # evaluate all candidates in the population
         scores = [c.update_internal() for c in pop]
-        print("GEN ", gen, "OF ", n_iter, "| MAX SCORE: ", str(max(scores)), " MEDIUM: ", mean(scores))
+        print("GEN ", gen+1, "OF ", n_iter, "| MAX SCORE: ", str(max(scores)), " MEAN: ", mean(scores))
         # check for new best solution
         for i in range(n_pop):
-            if scores[i] > best_eval:
+            if scores[i] > best_eval and not pop[i].penalty:
                 best, best_eval = pop[i], scores[i]
-                print(">%d, new best f(%s) = %.3f" % (gen, pop[i], scores[i]))
+                print(">%d, new best f(%s) = %.3f" % (gen, repr(pop[i]), scores[i]))
         # select parents
         selected = [selection(pop, scores) for _ in range(n_pop)]
         # create the next generation

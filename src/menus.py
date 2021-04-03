@@ -1,14 +1,46 @@
+import sys
+from typing import Union
+from timeit import default_timer as timer
+import operator as op
+
 import objects.primitives as prim
 import search.greedy_solution as greedy
 import search.heuristics as heur
-import objects.data as dat
+import search.naive as dat
 import search.genetic_algorithm as gen
 
-from timeit import default_timer as timer
 
-
-def pause():
+def pause() -> None:
     input("press any key to continue...")
+
+
+def read_input(message: str,
+               lower: (int, bool) = (0, False),      # Predefined lower bound is > 0
+               upper: (int, bool) = (10000, False),  # Predefined upper bound is < 10000
+               integer: bool = True) -> Union[int, float]:
+    """ By default, accepts a integer input between ]0, 10000[ """
+
+    lower_value, upper_value = lower[0], upper[0]
+    value = lower[0]-1
+
+    # if lower is inclusive -> checks lower than and not equal to keep in cycle
+    # if lower not inclusive -> checks lower than or equal to keep in cycle
+    comp1, l_bracket = (op.lt, "[") if lower[1] else (op.le, "]")
+    # if upper is inclusive -> checks greater than and not equal to keep in cycle
+    # if upper not inclusive -> checks greater than or equal to keep in cycle
+    comp2, r_bracket = (op.gt, "]") if upper[1] else (op.ge, "[")
+
+    while comp1(value, lower_value) or comp2(value, upper_value):
+        try:
+            value = int(input(message)) if integer else float(input(message))
+            if value < lower_value or value > upper_value:
+                print("Value must be in interval: {0}{1}, {2}{3}".format(l_bracket, lower_value, upper_value, r_bracket))
+        except ValueError:
+            print("You need to input a integer!")
+        except Exception:
+            print("\nBye bye")
+            sys.exit()
+    return value
 
 
 def cooling_function():
@@ -27,7 +59,7 @@ def cooling_function():
             return choice
 
 
-def _greedy():
+def _greedy() -> prim.Chromosome:
     menu_header("Greedy Solution")
     start = timer()
     solution = greedy.greedy_solution(True)
@@ -39,10 +71,10 @@ def _greedy():
     return solution
 
 
-def _naive():
+def _naive() -> prim.Chromosome:
     menu_header("Naive Solution")
     start = timer()
-    solution = dat.initial_solution()
+    solution = dat.naive_solution()
     solution.update_internal()
     end_greedy = timer()
     print(repr(solution))
@@ -51,22 +83,11 @@ def _naive():
     return solution
 
 
-def _genetic():
-    generations = 0
-    while generations <= 0:
-        generations = int(input("-> Number of Generations\n> "))
-
-    initial_pop = 0
-    while initial_pop <= 0:
-        initial_pop = int(input("-> Initial Population\n> "))
-
-    r_cross = 0
-    while r_cross <= 0 or r_cross > 1:
-        r_cross = float(input("-> Crossover Rate\n> "))
-
-    r_mut = 0
-    while r_mut <= 0 or r_mut > 1:
-        r_mut = float(input("-> Mutation Rate\n> "))
+def _genetic() -> None:
+    generations = read_input("-> Number of Generations\n> ")
+    initial_pop = read_input("-> Initial Population\n> ")
+    r_cross = read_input("-> Crossover Rate\n> ", upper=(1, True), integer=False)
+    r_mut = read_input("-> Mutation Rate\n> ", upper=(1, True), integer=False)
 
     print("Starting Genetic Algorithm")
     start = timer()
@@ -78,9 +99,7 @@ def _genetic():
 
 # --- Optimization Menus
 def _sim_an(initial):
-    iterations = 0
-    while iterations <= 0:
-        iterations = int(input("-> Number of Iterations for Simulated Annealing\n> "))
+    iterations = read_input("-> Number of Iterations for Simulated Annealing\n> ")
 
     function = cooling_function()
 
@@ -92,14 +111,9 @@ def _sim_an(initial):
     print("Took:", (end_greedy - start), "seconds")
 
 
-def _it_sim_an(initial):
-    iterations = 0
-    while iterations <= 0:
-        iterations = int(input("-> Number of Iterations to repeat Simulated Annealing\n> "))
-
-    sa_iterations = 0
-    while sa_iterations <= 0:
-        sa_iterations = int(input("-> Number of Iterations for Simulated Annealing\n> "))
+def _it_sim_an(initial: prim.Chromosome) -> None:
+    iterations = read_input("-> Number of Iterations to repeat Simulated Annealing\n> ")
+    sa_iterations = read_input("-> Number of Iterations for Simulated Annealing\n> ")
 
     function = cooling_function()
 
@@ -111,10 +125,8 @@ def _it_sim_an(initial):
     print("Took:", (end_greedy - start), "seconds")
 
 
-def _hill_climbing(initial):
-    iterations = 0
-    while iterations <= 0:
-        iterations = int(input("-> Number of Iterations for Hill Climbing\n> "))
+def _hill_climbing(initial: prim.Chromosome) -> None:
+    iterations = read_input("-> Number of Iterations for Hill Climbing\n> ",)
 
     print("Starting Hill Climbing with", iterations, "iterations...")
     start = timer()
@@ -125,7 +137,7 @@ def _hill_climbing(initial):
 # -----
 
 
-def menu_header(header: str):
+def menu_header(header: str) -> None:
     print()
     print(len(header)*"-")
     print(header.upper())
@@ -133,11 +145,11 @@ def menu_header(header: str):
     print()
 
 
-def _process_choice(menu):
+def _process_choice(menu: dict[int, list]) -> str:
     for k, v in menu.items():
         print("[{0}] {1}".format(k, v[0]))
     print()
-    choice = int(input("> "))
+    choice = read_input("> ", (0, True), (len(menu), False))
 
     return menu[choice][1] if choice in menu.keys() else None
 
@@ -165,7 +177,7 @@ def select_input() -> bool:
             return False
 
 
-def greedy_hill_climbing():
+def greedy_hill_climbing() -> None:
     path = select_input()
     if not path: return
 
@@ -174,7 +186,7 @@ def greedy_hill_climbing():
     pause()
 
 
-def greedy_sim_an():
+def greedy_sim_an() -> None:
     path = select_input()
     if not path: return
 
@@ -183,7 +195,7 @@ def greedy_sim_an():
     pause()
 
 
-def greedy_it_sim_an():
+def greedy_it_sim_an() -> None:
     path = select_input()
     if not path: return
 
@@ -192,7 +204,7 @@ def greedy_it_sim_an():
     pause()
 
 
-def greedy_non_opt():
+def greedy_non_opt() -> None:
     path = select_input()
     if not path: return
 
@@ -200,7 +212,7 @@ def greedy_non_opt():
     pause()
 
 
-def naive_hill_climbing():
+def naive_hill_climbing() -> None:
     path = select_input()
     if not path: return
 
@@ -209,7 +221,7 @@ def naive_hill_climbing():
     pause()
 
 
-def naive_sim_an():
+def naive_sim_an() -> None:
     path = select_input()
     if not path: return
 
@@ -218,7 +230,7 @@ def naive_sim_an():
     pause()
 
 
-def naive_it_sim_an():
+def naive_it_sim_an() -> None:
     path = select_input()
     if not path: return
 
@@ -227,14 +239,15 @@ def naive_it_sim_an():
     pause()
 
 
-def naive_non_opt():
+def naive_non_opt() -> None:
     path = select_input()
     if not path: return
 
     _naive()
     pause()
 
-def genetic():
+
+def genetic() -> None:
     path = select_input()
     if not path: return
 
@@ -242,7 +255,7 @@ def genetic():
     pause()
 
 
-def main_menu():
+def main_menu() -> str:
     while True:
         menu_header("Drone Delivery Google Hash Code")
 
@@ -264,7 +277,7 @@ def main_menu():
             return choice
 
 
-def user_interface():
+def user_interface() -> None:
     menu_stack = [main_menu]
     while len(menu_stack) > 0:
         next_menu = menu_stack[0]()
@@ -273,4 +286,3 @@ def user_interface():
             menu_stack.pop(0)
         else:
             menu_stack.insert(0, next_menu)
-
