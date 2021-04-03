@@ -1,4 +1,10 @@
-def export_data(drone_paths, filename):
+def export_data(drone_paths, filename) -> list[str]:
+    """
+    Exports the Chromossome to a file
+    :param drone_paths: DronePaths to get the info of the path of each drone
+    :param filename: Resulting file name
+    :return: List of the created commands
+    """
     f = open(filename, 'w')
 
     paths = [x for x in drone_paths.values()]
