@@ -4,8 +4,14 @@ from copy import deepcopy
 import objects.primitives as prim
 
 
-def deliverGenes(orders) -> list[prim.Gene]:
-    list = []
+def deliver_genes(orders) -> list[prim.Gene]:
+    """
+    Calculates the genes necessary for the delivery operations
+
+    :param orders: problem's orders
+    :return: a list containing the genes calculated
+    """
+    genes = []
     i = -1
     for order in orders:
         i += 1
@@ -17,14 +23,21 @@ def deliverGenes(orders) -> list[prim.Gene]:
 
             for i in range(drones_needed - 1):
                 remaining -= max_product
-                list.append(prim.Gene(None, -max_product, order, product))
+                genes.append(prim.Gene(None, -max_product, order, product))
             if remaining != 0:
-                list.append(prim.Gene(None, -remaining, order, product))
+                genes.append(prim.Gene(None, -remaining, order, product))
 
-    return list
+    return genes
 
 
 def calculate_product(warehouse_available, needed) -> tuple[int, int]:
+    """
+    Method to calculate the product quantity needed
+
+    :param warehouse_available: product quantity on the warehouse
+    :param needed: quantity needed
+    :return: a tuple with quantity left on the warehouse and quantity sill needed
+    """
     if warehouse_available >= needed:
         available = warehouse_available - needed
         return available, 0
@@ -34,11 +47,16 @@ def calculate_product(warehouse_available, needed) -> tuple[int, int]:
 
 
 def naive_solution() -> prim.Chromosome:
+    """
+    Naive algorithm for the problem
+
+    :return: a naive solution
+    """
     wh_copy = deepcopy(prim.Problem.warehouses)
     chromosome = prim.Chromosome()
     drone = 0
 
-    supplier_genes = deliverGenes(prim.Problem.orders)
+    supplier_genes = deliver_genes(prim.Problem.orders)
     for gene in supplier_genes:
         remaining_product = abs(gene.demand)  # demand product
         for warehouse in wh_copy:
