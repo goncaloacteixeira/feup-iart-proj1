@@ -161,7 +161,10 @@ def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
                 # store for next generation
                 children.append(new_c)
         # replace population
-        pop = children
+
+        children = list(filter(lambda x: x.update_internal() > 0, children))
+        ancestors = random.choice(range(n_pop), size=(n_pop-len(children)))
+        pop = children + [pop[i] for i in ancestors]
 
     data['generation'].append(n_iter)
     data['best'].append(best_eval)
