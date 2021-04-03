@@ -10,54 +10,118 @@ from search.constraints import *
 
 class Point:
     def __init__(self, x: int, y: int):
+        """Object that represents a point in the map
+
+        Args:
+            x (int): The position of the column
+            y (int): The position of the row
+        """
         self.x = x
         self.y = y
 
     def __str__(self) -> str:
+        """The String representation of a Point
+
+        Returns:
+            str: [POINT] X={x} Y={y}
+        """
         return "[POINT] X={x} Y={y}".format(x=self.x, y=self.y)
 
     def distance(self, point: 'Point') -> int:
+        """Distance calculated between 2 points
+
+        Args:
+            point (Point): Another point to calculate distance
+
+        Returns:
+            int: The calculated distance
+        """
         return math.ceil(math.sqrt((self.x - point.x) ** 2 + (self.y - point.y) ** 2))
 
 
 class Product:
     def __init__(self, id: int, weight: int):
+        """Product object with and identifier and weight
+
+        Args:
+            id (int): identifier of the product
+            weight (int): weight of the product
+        """
         self.id = id
         self.weight = weight
 
     def __str__(self) -> str:
+        """String representation of the Product object
+
+        Returns:
+            str: [PRODUCT {id}] - weight={weight}
+        """
         return "[PRODUCT {id}] - weight={weight}".format(id=self.id, weight=self.weight)
 
 
 class Spot(ABC):
     @abstractmethod
     def __init__(self, id: int, position: Point, products: dict[int, int]):
+        """Object representing a place in the map
+
+        Args:
+            id (int): identifier of the Spot
+            position (Point): Position of the Spot
+            products (dict[int, int]): Products and quantities associated with that spot
+        """
         self.id = id
         self.position = position
         self.products = products
 
-    def add_products(self, products: dict[int, int]):
+    def add_products(self, products: dict[int, int]) -> None:
+        """Adds the products from the arguments to this spot
+
+        Args:
+            products (dict[int, int]): list of products and quantities to add
+        """
         for product, quantity in products.items():
             if product in self.products:
                 self.products[product] += quantity
             else:
                 self.products[product] = quantity
 
-    def remove_products(self, products: dict[int, int]):
+    def remove_products(self, products: dict[int, int]) -> None:
+        """Removes the products from the list from this spot
+
+        Args:
+            products (dict[int, int]): list of products to be removed
+        """
         for product, quantity in products.items():
             self.products[product] -= quantity
             if self.products[product] == 0:
                 self.products.pop(product)
 
     def empty(self) -> bool:
+        """check if the list of products is empty
+
+        Returns:
+            bool: true if the list is empty
+        """
         return not self.products
 
 
 class Warehouse(Spot):
     def __init__(self, id: int, position: Point, products: dict[int, int]):
+        """An instance of Spot. A warehouse that holds products
+
+        Args:
+            id (int): identifier of the warehouse
+            position (Point): Position in the map
+            products (dict[int, int]): List of products in the warehouse
+        """     
         super().__init__(id, position, products)
 
     def __str__(self) -> str:
+        """String representation of a WareHouse, including products
+
+        Returns:
+            str: [WAREHOUSE {id}] - position={position} | {products}
+        """
         products = ""
         for product, amount in self.products.items():
             products += str(product) + " amount=" + str(amount) + "\n"
@@ -65,6 +129,14 @@ class Warehouse(Spot):
             .format(id=self.id, position=self.position, products=products)
 
     def has_any_product(self, products: dict) -> bool:
+        """Checks if the Warehouse has any of the products in the dict
+
+        Args:
+            products (dict): list of products
+
+        Returns:
+            bool: true if the warehouse has any of the products
+        """
         for k, v in products.items():
             if self.products.get(k, -1) > 0:
                 return True
@@ -73,10 +145,22 @@ class Warehouse(Spot):
 
 class Order(Spot):
     def __init__(self, id: int, position: Point, products: dict[int, int]):
+        """instance of Spot corresponding to a Order
+
+        Args:
+            id (int): identifier of the order
+            position (Point): Position of the Order
+            products (dict[int, int]): List of produts to be deliveres
+        """
         super().__init__(id, position, products)
         self.product_weight = 0
 
     def __str__(self) -> str:
+        """String representation of an Order
+
+        Returns:
+            str: [ORDER {id}] - position={position} | {products}
+        """
         products = ""
         for product, quantity in self.products.items():
             products += str(product) + " quantity=" + str(quantity) + "\n"
@@ -87,11 +171,12 @@ class Order(Spot):
         return not self.products
 
     def update_weight(self):
+        """updates the order weight based on the product list
+        """
         self.product_weight = sum(Problem.get_product(p).weight * q for p, q in self.products.items())
 
 
 class Problem:
-    """ Static Class to hold info about the problem"""
     rows: int = None
     cols: int = None
     drones: int = None
@@ -101,35 +186,53 @@ class Problem:
     orders: list[Order] = None
     products: list[Product] = None
 
-    def __init__(self, rows, cols, drones, turns, payload, warehouses, orders, products):
-        self.rows = rows
-        self.cols = cols
-        self.drones = drones
-        self.turns = turns
-        self.payload = payload
-        self.warehouses = warehouses
-        self.orders = orders
-        self.products = products
-
     @staticmethod
     def get_product(product_id: int) -> Product:
+        """Retrieve a Product by its id
+
+        Args:
+            product_id (int): identifier of the product
+
+        Returns:
+            Product: Product retrieved
+        """
         return Problem.products[product_id]
 
     @staticmethod
     def calculate_points(turn: int) -> int:
+        """Calculates the points given the turns
+
+        Args:
+            turn (int): turns
+
+        Returns:
+            int: score
+        """
         return math.ceil(((Problem.turns - turn) / Problem.turns) * 100)
 
     # "../input_data/redundancy.in"
     @staticmethod
     def read_file(file_path: str):
+        """Reads a file and fills the Problems values
+
+        Args:
+            file_path (str): path to the .in file
+        """
         [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
          Problem.products] = Problem.parse_file(file_path)
         for order in Problem.orders:
             order.update_weight()
-        # map(lambda x: x.update_weight(), Problem.orders)
 
     @staticmethod
-    def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
+    def parse_file(filename: str) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
+        """Parsed the .in file
+
+        Args:
+            filename (str): path to the .in file
+
+        Returns:
+            tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]: Problem data
+        """
         with open(filename, 'r') as file:
             # header
             n_rows, n_cols, n_drones, max_turns, max_payload = [int(x) for x in file.readline().split(" ")]
@@ -172,6 +275,15 @@ class Problem:
 
 class Gene:
     def __init__(self, drone_id: Union[int, None], demand: int, node: Spot, product: Product, turn: int = None):
+        """Gene Constructor
+
+        Args:
+            drone_id (Union[int, None]): identifier of the drone
+            demand (int): quantity of product
+            node (Spot): Warehouse or Order
+            product (Product): Product object
+            turn (int, optional): turn of execution. Defaults to None.
+        """
         self.drone_id = drone_id
         self.demand = demand
         self.node = node
@@ -180,6 +292,11 @@ class Gene:
         self.penalty = 0
 
     def __str__(self) -> str:
+        """String representation of Gene
+
+        Returns:
+            str: [ {droneID} | {demand} | {productID} | {node} | {turns} | {penalty} ]
+        """
         return "[ {droneID} | {demand} | {productID} | {node} | {turns} | {penalty} ]".format(droneID=self.drone_id,
                                                                                               demand=self.demand,
                                                                                               node=self.node.id,
@@ -188,12 +305,30 @@ class Gene:
                                                                                               penalty=self.penalty)
 
     def set_drone(self, drone: int) -> None:
+        """Sets the drone_id
+
+        Args:
+            drone (int): drone_id
+        """
         self.drone_id = drone
 
     def set_turns(self, turns: int) -> None:
+        """Sets the Gene turns
+
+        Args:
+            turns (int): turns
+        """
         self.turn = turns
 
     def __eq__(self, o: Gene) -> bool:
+        """Checks if 2 Genes are equals
+
+        Args:
+            o (Gene): The other Gene to compare
+
+        Returns:
+            bool: true if the Genes are equal
+        """
         return self.drone_id == o.drone_id and self.demand == o.demand and self.node.id == o.node.id and self.product.id == o.product.id and self.turn == o.turn
 
     def __hash__(self) -> int:
@@ -202,6 +337,13 @@ class Gene:
 
 class DronePath:
     def __init__(self, drone_id: int, current_position: Point = Point(0, 0), steps: list[Gene] = None):
+        """Drone Path constructor
+
+        Args:
+            drone_id (int): Drone identifier
+            current_position (Point, optional): Current position of the Drone. Defaults to Point(0, 0).
+            steps (list[Gene], optional): list of Genes of that Drone. Defaults to None.
+        """
         if steps is None:
             steps = []
         self.drone_id = drone_id
@@ -211,6 +353,11 @@ class DronePath:
         self.turns = 0
 
     def __str__(self) -> str:
+        """String representation of the DronePath
+
+        Returns:
+            str: DRONE and list
+        """
         print("DRONE ", self.drone_id)
         [print(str(gene)) for gene in self.steps]
         return ""

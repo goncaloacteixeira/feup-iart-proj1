@@ -1,4 +1,5 @@
 def export_data(drone_paths, filename):
+
     f = open(filename, 'w')
 
     paths = [x for x in drone_paths.values()]
