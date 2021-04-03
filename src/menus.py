@@ -48,10 +48,10 @@ def cooling_function():
         print("-> Select Cooling Function")
 
         menu = {
-            1: ["Exponential", heur.CoolingFunctions.exponential],
-            2: ["Linear", heur.CoolingFunctions.linear],
-            3: ["Quadratic", heur.CoolingFunctions.quadratic],
-            4: ["Logarithmic", heur.CoolingFunctions.logarithmic]
+            0: ["Exponential", heur.CoolingFunctions.exponential],
+            1: ["Linear", heur.CoolingFunctions.linear],
+            2: ["Quadratic", heur.CoolingFunctions.quadratic],
+            3: ["Logarithmic", heur.CoolingFunctions.logarithmic]
         }
 
         choice = _process_choice(menu)
