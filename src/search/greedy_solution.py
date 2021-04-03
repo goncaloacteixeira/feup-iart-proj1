@@ -21,7 +21,6 @@ def greedy_solution(use_best: bool = True):
             else:
                 orders_done += temp
                 # print("Orders Completed: ", orders_done, "/", len(orders))
-    print("Found Solution")
     return chromosome
 
 

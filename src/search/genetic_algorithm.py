@@ -1,4 +1,6 @@
 import concurrent.futures
+import pandas as pd
+import matplotlib.pyplot as plt
 
 from objects.primitives import *
 from numpy import random, mean
@@ -81,16 +83,25 @@ def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
     pop = create_population(n_pop)
     # keep track of best solution
     best, best_eval = best_individual(pop)
+
+    data = {"generation": [], "mean": [], "best": []}
+    scores = []
+
     # enumerate generations
     for gen in range(n_iter):
         # evaluate all candidates in the population
         scores = [c.update_internal() for c in pop]
-        print("GEN ", gen+1, "OF ", n_iter, "| MAX SCORE: ", str(max(scores)), " MEAN: ", mean(scores))
+        print("GEN ", gen + 1, "OF ", n_iter, "| MAX SCORE: ", str(max(scores)), " MEAN: ", mean(scores))
         # check for new best solution
         for i in range(n_pop):
             if scores[i] > best_eval and not pop[i].penalty:
                 best, best_eval = pop[i], scores[i]
                 print(">%d, new best f(%s) = %.3f" % (gen, repr(pop[i]), scores[i]))
+
+        data['generation'].append(gen)
+        data['best'].append(best_eval)
+        data['mean'].append(mean(scores))
+
         # select parents
         selected = [selection(pop, scores) for _ in range(n_pop)]
         # create the next generation
@@ -106,5 +117,31 @@ def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
                 children.append(new_c)
         # replace population
         pop = children
+
+    data['generation'].append(n_iter)
+    data['best'].append(best_eval)
+    data['mean'].append(mean(scores))
+
+    df = pd.DataFrame(data=data)
+
+    fig, ax = plt.subplots()
+
+    df.plot(x='generation', y='best', ax=ax)
+    df.plot(x='generation', y='mean', ax=ax)
+
+    best_score = max(data['best'])
+    xpos = data['best'].index(best_score)
+    xmax = data['generation'][xpos]
+
+    ax.annotate(str(best_score) + "(generation = " + str(xmax) + ")", xy=(xmax, best_score), xytext=(xmax, best_score + 5),
+                arrowprops=dict(facecolor='black', shrink=0.05),
+                )
+
+    ax.set_ylim(min(data['mean']) - 10, 110)
+    fig.set_size_inches(18.5, 11.5)
+    ax.set_title('Genetic Algorithms')
+    ax.set_ylabel('Score')
+
+    plt.show()
 
     return best.clean(), best_eval
