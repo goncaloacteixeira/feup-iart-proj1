@@ -25,8 +25,6 @@ def plot_simulated_annealing(data):
 
     fig, ax = plt.subplots()
 
-    plt.figure(figsize=(10, 10), dpi=80)
-
     df.plot(x='iteration', y='current', ax=ax)
     df.plot(x='iteration', y='best', ax=ax)
     df.plot(x='iteration', y='temperature', ax=ax, secondary_y=True)
@@ -40,10 +38,8 @@ def plot_simulated_annealing(data):
                 )
 
     ax.set_ylim(min(data['current']) - 10, 110)
-
-    plt.show()
-
-    print("new plot - max:", best_score)
+    fig.set_size_inches(18.5, 10.5)
+    ax.set_title('Simulated Annealing')
 
 
 def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosome:
@@ -57,7 +53,6 @@ def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosom
         candidate_score = candidate.update_internal()
         if candidate_score >= score:
             chromosome, score = candidate, candidate_score
-            print("Found a better one, score:", score)
 
         data['value'].append(score)
         data['iteration'].append(i)
@@ -67,7 +62,18 @@ def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosom
     plt.ylabel("Value")
     plt.title("Hill Climbing")
 
-    plt.ylim(0, 100)
+    best_score = max(data['value'])
+    xpos = data['value'].index(best_score)
+    xmax = data['iteration'][xpos]
+
+    plt.gca().annotate(str(best_score) + " (max)", xy=(xmax, best_score), xytext=(xmax, best_score + 5),
+                       arrowprops=dict(facecolor='black', shrink=0.05),
+                       )
+
+    plt.gca().set_ylim(min(data['value']) - 10, 110)
+
+    fig = plt.gcf()
+    fig.set_size_inches(15.5, 10.5)
 
     plt.show()
 
@@ -75,7 +81,7 @@ def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosom
 
 
 def _simulated_annealing(initial_value: Chromosome, cooling_function, iterations: int = 50, temp: int = 100,
-                        cumulative: int = 0, data=None):
+                         cumulative: int = 0, data=None):
     if data is None:
         data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
 
@@ -120,16 +126,18 @@ def simulated_annealing(initial_value: Chromosome, cooling_function, iterations,
     data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
     best = _simulated_annealing(initial_value, cooling_function, iterations, temp, data=data)
     plot_simulated_annealing(data)
-
+    plt.show()
     return best
 
 
-def iterative_simulated_annealing(initial_input, cooling_function, iterations: int = 3, sa_iterations: int = 100, temp: int = 100):
+def iterative_simulated_annealing(initial_input, cooling_function, iterations: int = 3, sa_iterations: int = 100,
+                                  temp: int = 100):
     data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
     for i in range(iterations):
-        cumulative = i*sa_iterations
+        cumulative = i * sa_iterations
+        initial_input = _simulated_annealing(initial_input, cooling_function, sa_iterations, temp,
+                                             cumulative=cumulative, data=data)
 
-        initial_input = _simulated_annealing(initial_input, cooling_function, sa_iterations, temp, cumulative=cumulative, data=data)
-        plot_simulated_annealing(data)
-
+    plot_simulated_annealing(data)
+    plt.show()
     return initial_input
