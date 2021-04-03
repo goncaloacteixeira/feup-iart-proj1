@@ -74,7 +74,7 @@ def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosom
     return chromosome
 
 
-def simulated_annealing(initial_value: Chromosome, cooling_function, iterations: int = 50, temp: int = 100,
+def _simulated_annealing(initial_value: Chromosome, cooling_function, iterations: int = 50, temp: int = 100,
                         cumulative: int = 0, data=None):
     if data is None:
         data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
@@ -116,12 +116,20 @@ def simulated_annealing(initial_value: Chromosome, cooling_function, iterations:
     return best
 
 
+def simulated_annealing(initial_value: Chromosome, cooling_function, iterations, temp: int = 100):
+    data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
+    best = _simulated_annealing(initial_value, cooling_function, iterations, temp, data=data)
+    plot_simulated_annealing(data)
+
+    return best
+
+
 def iterative_simulated_annealing(initial_input, cooling_function, iterations: int = 3, sa_iterations: int = 100, temp: int = 100):
     data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
     for i in range(iterations):
         cumulative = i*sa_iterations
 
-        initial_input = simulated_annealing(initial_input, cooling_function, sa_iterations, temp, cumulative=cumulative, data=data)
+        initial_input = _simulated_annealing(initial_input, cooling_function, sa_iterations, temp, cumulative=cumulative, data=data)
         plot_simulated_annealing(data)
 
     return initial_input

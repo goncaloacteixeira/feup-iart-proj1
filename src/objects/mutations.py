@@ -1,12 +1,9 @@
 from numpy import random
-from datetime import datetime
 import objects.primitives as prim
 
 
 # Trocar drones de 2 alelos para alterar trajetos (funciona com drones nulos)
 def switch_drones(genes: list) -> list:
-    random.seed(datetime.now().second.real)
-
     gene2, drone2 = 0, -1
     gene1 = random.randint(0, len(genes))
     drone1 = genes[gene1].drone_id

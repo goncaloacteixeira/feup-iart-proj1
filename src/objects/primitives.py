@@ -322,10 +322,9 @@ class Chromosome:
     def mutate(self):
         mutated_chromosome = deepcopy(self)
 
-        mutation_functions = [unbalance_quantities, switch_drones, join_genes, pop_gene, cleanse_genes]
+        mutation_functions = [unbalance_quantities, join_genes, pop_gene, cleanse_genes]
 
-        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](
-            mutated_chromosome.genes)
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](mutated_chromosome.genes)
 
         return mutated_chromosome
 

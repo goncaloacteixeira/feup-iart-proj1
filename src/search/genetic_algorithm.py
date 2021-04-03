@@ -103,4 +103,4 @@ def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
         # replace population
         pop = children
 
-    return [best, best_eval]
+    return best, best_eval
