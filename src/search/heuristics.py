@@ -20,7 +20,13 @@ class CoolingFunctions:
     def quadratic(t0, iteration, _): return t0 / (1 + iteration ** 2)
 
 
-def plot_simulated_annealing(data):
+def plot_simulated_annealing(data: dict) -> None:
+    """
+    Plots the data acquired on the simulated annealing algorithm
+
+    :param data: data containing iterations, best values and temperatures
+    """
+
     df = pd.DataFrame(data=data)
 
     fig, ax = plt.subplots()
@@ -43,6 +49,14 @@ def plot_simulated_annealing(data):
 
 
 def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosome:
+    """
+    Hill Climbing Heuristic for a solution
+
+    :param initial_input: the initial solution to be optimized
+    :param iterations: number of max iterations for the algorithm
+    :return: the optimized solution
+    """
+
     chromosome = initial_input
     score = chromosome.update_internal()
 
@@ -82,6 +96,19 @@ def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosom
 
 def _simulated_annealing(initial_value: Chromosome, cooling_function, iterations: int = 50, temp: int = 100,
                          cumulative: int = 0, data=None):
+    """
+    Simulated Annealing private method, the algorithm is implemented here, and it will collect the data to
+    later display the plot.
+
+    :param initial_value: initial solution to optimize
+    :param cooling_function: cooling function to be used
+    :param iterations: max iterations for the algorithm
+    :param temp: initial temperature
+    :param cumulative: cumulative iterations (used for iterative simulated annealing)
+    :param data: data to be collected
+    :return: the optimized solution
+    """
+
     if data is None:
         data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
 
@@ -123,6 +150,17 @@ def _simulated_annealing(initial_value: Chromosome, cooling_function, iterations
 
 
 def simulated_annealing(initial_value: Chromosome, cooling_function, iterations, temp: int = 100):
+    """
+    Public method for the simulated annealing, it will run the algorithm and display a plot for the data collected
+    afterwards
+
+    :param initial_value: initial solution to optimize
+    :param cooling_function: cooling function to be used
+    :param iterations: max iterations for the algorithm
+    :param temp: initial temperature
+    :return: the optimized solution
+    """
+
     data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
     best = _simulated_annealing(initial_value, cooling_function, iterations, temp, data=data)
     plot_simulated_annealing(data)
@@ -132,6 +170,18 @@ def simulated_annealing(initial_value: Chromosome, cooling_function, iterations,
 
 def iterative_simulated_annealing(initial_input, cooling_function, iterations: int = 3, sa_iterations: int = 100,
                                   temp: int = 100):
+    """
+    'Iterative' Simulated Annealing, it will run the simulated annealing algorithm several times, trying to optimize
+    the previous best solution
+
+    :param initial_input: initial solution to optimize
+    :param cooling_function: cooling function to be used
+    :param iterations: max iterations for the algorithm
+    :param sa_iterations: max iterations for each run of the simulated annealing
+    :param temp: initial temperature
+    :return: the optimized solution
+    """
+
     data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
     for i in range(iterations):
         cumulative = i * sa_iterations
