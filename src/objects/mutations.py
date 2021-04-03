@@ -4,18 +4,20 @@ from numpy import random
 import objects.primitives as prim
 
 
-# Trocar drones de 2 alelos para alterar trajetos (funciona com drones nulos)
 def switch_drones(genes: list) -> list:
+    """
+    Switches the drones of 2 genes (works with None drone_id's)
+    :param genes: List of genes to be altered
+    :return: Altered list of genes
+    """
     gene1_ind = random.randint(0, len(genes))
     drone1 = genes[gene1_ind].drone_id
 
-    # lista de genes com drone != drone 1
     dif_drones: list[(int, prim.Gene)] = list(filter(lambda x: x[1].drone_id != drone1, enumerate(genes)))
 
     if not dif_drones:
         return genes
 
-    # escolher um dessa lista
     gene2_ind, gene2 = dif_drones[random.randint(0, len(dif_drones))] if len(dif_drones) > 1 else dif_drones[0]
     drone2 = gene2.drone_id
 
@@ -25,8 +27,12 @@ def switch_drones(genes: list) -> list:
     return genes
 
 
-# 2 alelos do mesmo WH e item -> desiquilibrar as quantidades
 def unbalance_quantities(genes: list) -> list:
+    """
+    Unbalances the quantities of 2 genes of the same WareHouse and Product
+    :param genes: List of genes to be altered
+    :return: Altered list of genes
+    """
     supplies = {}
     for i, gene in enumerate(genes):
         if gene.demand < 0: continue
@@ -58,20 +64,32 @@ def unbalance_quantities(genes: list) -> list:
     return genes
 
 
-# limpar genes com penalty diferente de 0
 def cleanse_genes(genes: list) -> list:
+    """
+    Removes genes with penalties higher than 0
+    :param genes: List of genes to be altered
+    :return: Altered list of genes
+    """
     return list(filter(lambda x: x.penalty == 0, genes))
 
 
-# remove o gene com maior penalty
 def pop_gene(genes: list) -> list:
+    """
+    Removes the gene with the highest penalty
+    :param genes: List of genes to be altered
+    :return: Altered list of genes
+    """
     sorted_genes = sorted(genes, key=lambda x: -x.penalty)
     genes.remove(sorted_genes[0])
     return genes
 
 
-# Junta 2 genes de deliver/supply num mesmo, com um dos drones, escolhido aleatório ficando na posição do 1º/2º
 def join_genes(genes: list) -> list:
+    """
+    Merges 2 genes of the same Spot and Product, adding the quantities and choosing one of the two drone_id's
+    :param genes: List of genes to be altered
+    :return: Altered list of genes
+    """
     gene_dic = {}
 
     for i, gene in enumerate(genes):
@@ -110,8 +128,12 @@ def join_genes(genes: list) -> list:
     return genes
 
 
-# Adiciona um gene de um produto de um wh que não esteja em uso com drone_id None
 def add_gene(genes: list):
+    """
+    Adds a Gene of a product available in one of the warehouses
+    :param genes: List of genes to be altered
+    :return: Altered list of genes
+    """
     # copy WH
     warehouses = deepcopy(prim.Problem.warehouses)
 
@@ -131,7 +153,7 @@ def add_gene(genes: list):
 
         wh.remove_products({product_id: gene_quantity})
 
-        if wh.empty():
+        if wh.complete():
             warehouses.remove(wh)
 
     # pegar num wh e um produto e uma quantidade, criar gene
