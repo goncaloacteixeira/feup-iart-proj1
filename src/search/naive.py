@@ -31,7 +31,7 @@ def calculate_product(warehouse_available, needed) -> tuple[int, int]:
         return 0, still_need
 
 
-def initial_solution() -> prim.Chromosome:
+def naive_solution() -> prim.Chromosome:
     wh_copy = prim.Problem.warehouses.copy()
     chromosome = prim.Chromosome()
     drone = 0

@@ -1,7 +1,6 @@
 from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from typing import Union
 from collections import Counter
 
@@ -322,10 +321,9 @@ class Chromosome:
     def mutate(self):
         mutated_chromosome = deepcopy(self)
 
-        mutation_functions = [unbalance_quantities, switch_drones, join_genes, pop_gene, cleanse_genes]
+        mutation_functions = [unbalance_quantities, join_genes, pop_gene, cleanse_genes, switch_drones]
 
-        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](
-            mutated_chromosome.genes)
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](mutated_chromosome.genes)
 
         return mutated_chromosome
 
@@ -459,6 +457,6 @@ class Shipment:
         # update chromosome unload genes
         for product_id, quantity in self.products.items():
             chromosome.add_gene(
-                Gene(self.drone_path.drone_id, -quantity, self.order, Problem.get_product(product_id), self.drone_path.turns + 1))
+                Gene(self.drone_path.drone_id, -quantity, self.order, Problem.get_product(product_id), self.drone_path.turns))
 
         return int(self.order.complete())
