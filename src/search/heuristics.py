@@ -77,7 +77,7 @@ def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosom
 
     plt.show()
 
-    return chromosome
+    return chromosome.clean()
 
 
 def _simulated_annealing(initial_value: Chromosome, cooling_function, iterations: int = 50, temp: int = 100,
@@ -119,7 +119,7 @@ def _simulated_annealing(initial_value: Chromosome, cooling_function, iterations
         data['iteration'].append(cumulative + i)
         data['temperature'].append(t)
 
-    return best
+    return best.clean()
 
 
 def simulated_annealing(initial_value: Chromosome, cooling_function, iterations, temp: int = 100):

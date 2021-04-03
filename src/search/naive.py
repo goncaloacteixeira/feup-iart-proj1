@@ -1,4 +1,6 @@
 import math
+from copy import deepcopy
+
 import objects.primitives as prim
 
 
@@ -32,7 +34,7 @@ def calculate_product(warehouse_available, needed) -> tuple[int, int]:
 
 
 def naive_solution() -> prim.Chromosome:
-    wh_copy = prim.Problem.warehouses.copy()
+    wh_copy = deepcopy(prim.Problem.warehouses)
     chromosome = prim.Chromosome()
     drone = 0
 

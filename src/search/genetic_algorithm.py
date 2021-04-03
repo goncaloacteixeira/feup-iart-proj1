@@ -144,4 +144,4 @@ def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
 
     plt.show()
 
-    return best, best_eval
+    return best.clean(), best_eval

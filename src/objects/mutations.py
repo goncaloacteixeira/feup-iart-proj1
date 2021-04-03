@@ -110,17 +110,47 @@ def join_genes(genes: list) -> list:
     return genes
 
 
-# Adiciona um gene de um produto de um wh que não esteja
+# Adiciona um gene de um produto de um wh que não esteja em uso com drone_id None
 def add_gene(genes: list):
     # copy WH
     warehouses = deepcopy(prim.Problem.warehouses)
 
     # remover produtos que estão nos genes[]
     for gene in genes:
-        product = gene.product
-        quantity = gene.demand
+        gene_quantity = gene.demand
+        if gene_quantity < 0:    # not a WH
+            continue
+        product_id = gene.product.id
+        wh = next((wh for wh in warehouses if wh.id == gene.node.id), None)
+        assert wh
 
+        wh_quantity = wh.products.get(product_id)
 
-    # escolher um produto e quantidade random
-    # adicionar a genes[] com drone = None
-    pass
+        if wh_quantity is None:
+            continue
+
+        wh.remove_products({product_id: gene_quantity})
+
+        if wh.empty():
+            warehouses.remove(wh)
+
+    # pegar num wh e um produto e uma quantidade, criar gene
+    wh: prim.Warehouse = warehouses[random.randint(0, len(warehouses))]
+
+    product_id = random.choice(list(wh.products.keys()))
+    total = wh.products[product_id]
+
+    if total <= 0:
+        return genes
+    amount = random.randint(1, total+1) if total > 0 else 1
+
+    actual_wh = next((actual_wh for actual_wh in prim.Problem.warehouses if actual_wh.id == wh.id), None)
+    assert actual_wh
+    actual_product = next((actual_pd for actual_pd in prim.Problem.products if actual_pd.id == product_id), None)
+    assert actual_product
+
+    gene: prim.Gene = prim.Gene(None, amount, actual_wh, actual_product)
+
+    genes.insert(random.randint(0, len(genes)), gene)
+
+    return genes

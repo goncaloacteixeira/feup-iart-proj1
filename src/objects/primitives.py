@@ -49,6 +49,9 @@ class Spot(ABC):
             if self.products[product] == 0:
                 self.products.pop(product)
 
+    def empty(self) -> bool:
+        return not self.products
+
 
 class Warehouse(Spot):
     def __init__(self, id: int, position: Point, products: dict[int, int]):
@@ -157,7 +160,7 @@ class Problem:
             for i in range(n_orders):
                 x, y = map(int, file.readline().split(" "))
                 n_products_in_order = int(file.readline())
-                order_products = list(map(int, file.readline().split(" ")))   # applies int() to each element
+                order_products = list(map(int, file.readline().split(" ")))  # applies int() to each element
                 # to ensure the number of products in order actually corresponds to the number of products listed
                 assert n_products_in_order == len(order_products)
                 # order_products = [products[x] for x in order_products]      # list[int] -> list[Product]
@@ -165,19 +168,6 @@ class Problem:
                 order_list.append(order)
 
         return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list, products
-
-    # @staticmethod
-    # def copy() -> Problem:
-    #     rows = deepcopy(Problem.rows)
-    #     cols = deepcopy(Problem.cols)
-    #     drones = deepcopy(Problem.drones)
-    #     turns = deepcopy(Problem.turns)
-    #     payload = deepcopy(Problem.payload)
-    #     warehouses = deepcopy(Problem.warehouses)
-    #     orders = deepcopy(Problem.orders)
-    #     products = deepcopy(Problem.products)
-    #
-    #     return Problem()
 
 
 class Gene:
@@ -321,11 +311,16 @@ class Chromosome:
     def mutate(self):
         mutated_chromosome = deepcopy(self)
 
-        mutation_functions = [unbalance_quantities, join_genes, pop_gene, cleanse_genes, switch_drones]
+        mutation_functions = [unbalance_quantities, join_genes, pop_gene, cleanse_genes, switch_drones, add_gene]
 
-        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](mutated_chromosome.genes)
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](
+            mutated_chromosome.genes)
 
         return mutated_chromosome
+
+    def clean(self) -> Chromosome:
+        self.genes = list(filter(lambda x: x.drone_id is not None, self.genes))
+        return self
 
     def __update_solution(self, gene: Gene) -> None:
         if gene.drone_id is None:
@@ -349,6 +344,8 @@ class Chromosome:
         path.add_step(gene)
 
     def __update_orders(self, gene: Gene):
+        if gene.drone_id is None:
+            return
         if isinstance(gene.node, Order):
             if not self.__order_exists(gene.node):
                 self.__add_order(gene.node)
@@ -450,13 +447,15 @@ class Shipment:
         # update chromosome load genes
         for product_id, quantity in self.products.items():
             chromosome.add_gene(
-                Gene(self.drone_path.drone_id, quantity, self.warehouse, Problem.get_product(product_id), self.drone_path.turns + 1))
+                Gene(self.drone_path.drone_id, quantity, self.warehouse, Problem.get_product(product_id),
+                     self.drone_path.turns + 1))
 
         self.drone_path.add_turns(self.turns)
 
         # update chromosome unload genes
         for product_id, quantity in self.products.items():
             chromosome.add_gene(
-                Gene(self.drone_path.drone_id, -quantity, self.order, Problem.get_product(product_id), self.drone_path.turns))
+                Gene(self.drone_path.drone_id, -quantity, self.order, Problem.get_product(product_id),
+                     self.drone_path.turns))
 
         return int(self.order.complete())
