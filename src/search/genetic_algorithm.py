@@ -8,6 +8,12 @@ import search.greedy_solution as greed
 
 
 def create_population(n_pop) -> list[Chromosome]:
+    """
+    Creates a random population using a non greedy algorithm
+
+    :param n_pop: number of individuals (chromosomes)
+    :return: list containing a population
+    """
     population = []
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -18,6 +24,11 @@ def create_population(n_pop) -> list[Chromosome]:
 
 
 def best_individual(pop: list[Chromosome]) -> (Chromosome, float):
+    """
+    Calculates the best individual among a population
+    :param pop: sample population (chromosomes)
+    :return: best individual (highest score, including penalties)
+    """
     current_best = (None, -9999)
     for chromosome in pop:
         score = chromosome.update_internal()
@@ -26,8 +37,16 @@ def best_individual(pop: list[Chromosome]) -> (Chromosome, float):
     return current_best
 
 
-# tournament selection
 def selection(pop, scores, k=3) -> Chromosome:
+    """
+    Tournament Selection: chooses an individual and makes it "fight" with the rest
+    of the population
+
+    :param pop: sample population (chromosomes)
+    :param scores: list with scores (evaluation function)
+    :param k: number of tournament participants
+    :return: the best chromosome
+    """
     # first random selection
     selection_ix = random.randint(len(pop))
     for ix in random.randint(0, len(pop), k - 1):
@@ -38,6 +57,14 @@ def selection(pop, scores, k=3) -> Chromosome:
 
 
 def crossover(p1: Chromosome, p2: Chromosome, r_cross: float) -> list[Chromosome]:
+    """
+    Crossover operation between two chromosomes with a given rate
+
+    :param p1: first chromosome
+    :param p2: second chromosome
+    :param r_cross: Crossover Rate (probabilistic)
+    :return: two resulting chromosomes after the crossover operation
+    """
     if random.random() <= r_cross:
         # ver tamanhos de ambos os cromossomas
         # escolher menor dos 2
@@ -72,6 +99,13 @@ def crossover(p1: Chromosome, p2: Chromosome, r_cross: float) -> list[Chromosome
 
 
 def mutation(c: Chromosome, r_mut) -> Chromosome:
+    """
+    Mutates a chromosome with a given rate
+
+    :param c: chromosome to be mutated
+    :param r_mut: mutation rate
+    :return: mutated chromosome
+    """
     if random.random() <= r_mut:
         new_c = c.mutate()
         return new_c
@@ -79,6 +113,17 @@ def mutation(c: Chromosome, r_mut) -> Chromosome:
 
 
 def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
+    """
+    Genetic Algorithm, with a given number of generations, a size for the initial population and the mutation
+    and crossover rates
+
+    :param n_iter: number of generations for the algorithm
+    :param n_pop: number of individuals for the initial population
+    :param r_cross: crossover rate [0.0, 1.0)
+    :param r_mut: mutation rate [0.0, 1.0)
+    :return: best individual among every generation
+    """
+
     # initial population of random bitstring
     pop = create_population(n_pop)
     # keep track of best solution
