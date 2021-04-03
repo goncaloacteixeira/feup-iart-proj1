@@ -1,3 +1,5 @@
+import concurrent.futures
+
 from objects.primitives import *
 from numpy import random, mean
 import search.greedy_solution as greed
@@ -5,9 +7,12 @@ import search.greedy_solution as greed
 
 def create_population(n_pop) -> list[Chromosome]:
     population = []
-    for i in range(n_pop):
-        population.append(greed.greedy_solution(False))
-    return population
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for i in range(n_pop):
+            population.append(executor.submit(greed.greedy_solution, False))
+
+    return list(map(lambda x: x.result(), population))
 
 
 def best_individual(pop: list[Chromosome]) -> (Chromosome, float):
@@ -41,20 +46,20 @@ def crossover(p1: Chromosome, p2: Chromosome, r_cross: float) -> list[Chromosome
         size = random.randint(1, max_length)
 
         # escolher indice inicial de genes entre ind 0 e len-tamanho de cima
-        g1_ind = random.randint(0, len(p1.genes)-size+1)
-        g2_ind = random.randint(0, len(p2.genes)-size+1)
+        g1_ind = random.randint(0, len(p1.genes) - size + 1)
+        g2_ind = random.randint(0, len(p2.genes) - size + 1)
 
         # fazer a troca
-        g1_genes = p1.genes[g1_ind:g1_ind+size]
-        g2_genes = p2.genes[g2_ind:g2_ind+size]
+        g1_genes = p1.genes[g1_ind:g1_ind + size]
+        g2_genes = p2.genes[g2_ind:g2_ind + size]
 
         g1_drones = [gene.drone_id for gene in g1_genes]
         g2_drones = [gene.drone_id for gene in g2_genes]
 
-        for i in range(g1_ind, g1_ind+size):
+        for i in range(g1_ind, g1_ind + size):
             p1.genes[i].drone_id = g2_drones[i - g1_ind]
 
-        for i in range(g2_ind, g2_ind+size):
+        for i in range(g2_ind, g2_ind + size):
             p2.genes[i].drone_id = g1_drones[i - g2_ind]
 
         # To switch genes instead of drones
@@ -95,7 +100,7 @@ def genetic_algorithm(n_iter, n_pop, r_cross, r_mut):
             # get selected parents in pairs
             p1, p2 = selected[i], selected[i + 1]
             # crossover and mutation
-            for c in crossover(p1, p2, r_cross):
+            for c in crossover(deepcopy(p1), deepcopy(p2), r_cross):
                 # mutation
                 new_c = mutation(c, r_mut)
                 # store for next generation

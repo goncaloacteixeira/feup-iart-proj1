@@ -69,8 +69,6 @@ def _genetic():
         r_mut = float(input("-> Mutation Rate\n> "))
 
     print("Starting Genetic Algorithm")
-    print("Generations: {0}\nInitial Population: {1}\nCrossover Rate: {2}\nMutation Rate{3}"
-          .format(generations, initial_pop, r_cross, r_mut))
     start = timer()
     best, best_score = gen.genetic_algorithm(generations, initial_pop, r_cross, r_mut)
     end_greedy = timer()
