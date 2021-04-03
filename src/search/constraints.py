@@ -1,4 +1,11 @@
 def check_turns(drone_path, turns):
+    """
+    The max turns on a gene must not be higher than the max allowed turns
+
+    :param drone_path: list containing the paths for every drone
+    :param turns: max turns allowed
+    :return: 0 if the constraint was fulfilled, 0 otherwise
+    """
     final_turn = max(gene.turn for gene in drone_path.steps)
     if final_turn > turns:
         return 1
@@ -6,6 +13,15 @@ def check_turns(drone_path, turns):
 
 
 def check_payload(drone_path, products, prob_payload):
+    """
+    Checks if any drone exceeded the max allowed payload
+
+    :param drone_path: list containing the paths for every drone
+    :param products: list containing the problem's products
+    :param prob_payload: max payload allowed for a drone
+    :return: the number of times this constraint was unfulfilled
+    """
+
     penalty = 1
     penalty_applied = 0
 
@@ -19,6 +35,13 @@ def check_payload(drone_path, products, prob_payload):
 
 
 def check_delivery(drone_path):
+    """
+    Checks if the drones have the product and the necessary amount before every delivery
+
+    :param drone_path:  list containing the paths for every drone
+    :return: the number of times this constraint was unfulfilled
+    """
+
     penalty = 1
     penalty_applied = 0
 
