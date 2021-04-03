@@ -8,22 +8,24 @@ from objects.primitives import Chromosome
 
 class CoolingFunctions:
     @staticmethod
-    def exponential(t0, iteration): return t0 * 0.8 ** iteration
+    def exponential(t0, iteration, _): return t0 * 0.8 ** iteration
 
     @staticmethod
-    def logarithmic(t0, iteration): return t0 / (1 + log(1 + iteration))
+    def logarithmic(t0, iteration, _): return t0 / (1 + log(1 + iteration))
 
     @staticmethod
-    def linear(t0, iteration): return t0 / (1 + iteration)
+    def linear(t0, iteration, max_iterations): return -iteration * t0 / max_iterations + t0 or 0.001
 
     @staticmethod
-    def quadratic(t0, iteration): return t0 / (1 + iteration ** 2)
+    def quadratic(t0, iteration, _): return t0 / (1 + iteration ** 2)
 
 
 def plot_simulated_annealing(data):
     df = pd.DataFrame(data=data)
 
     fig, ax = plt.subplots()
+
+    plt.figure(figsize=(10, 10), dpi=80)
 
     df.plot(x='iteration', y='current', ax=ax)
     df.plot(x='iteration', y='best', ax=ax)
@@ -40,6 +42,8 @@ def plot_simulated_annealing(data):
     ax.set_ylim(min(data['current']) - 10, 110)
 
     plt.show()
+
+    print("new plot - max:", best_score)
 
 
 def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosome:
@@ -70,7 +74,7 @@ def hill_climbing(initial_input: Chromosome, iterations: int = 100) -> Chromosom
     return chromosome
 
 
-def simulated_annealing(initial_value: Chromosome, cooling_function, iterations: int = 50, temp: int = 100,
+def _simulated_annealing(initial_value: Chromosome, cooling_function, iterations: int = 50, temp: int = 100,
                         cumulative: int = 0, data=None):
     if data is None:
         data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
@@ -95,13 +99,13 @@ def simulated_annealing(initial_value: Chromosome, cooling_function, iterations:
             best, best_score = candidate, candidate_score
             # print("Found a better one, score:", best_score)
         diff = candidate_score - current_score
-        t = cooling_function(temp, i)
+        t = cooling_function(temp, i, iterations)
         try:
             metropolis = exp(-diff / t)
         except OverflowError:
             metropolis = float('inf')
 
-        if diff < 0 or randint(0, 1) < metropolis:
+        if (diff < 0 or randint(0, 1) < metropolis) and candidate_score > 0:
             current, current_score = candidate, candidate_score
 
         data['best'].append(best_score)
@@ -112,12 +116,20 @@ def simulated_annealing(initial_value: Chromosome, cooling_function, iterations:
     return best
 
 
+def simulated_annealing(initial_value: Chromosome, cooling_function, iterations, temp: int = 100):
+    data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
+    best = _simulated_annealing(initial_value, cooling_function, iterations, temp, data=data)
+    plot_simulated_annealing(data)
+
+    return best
+
+
 def iterative_simulated_annealing(initial_input, cooling_function, iterations: int = 3, sa_iterations: int = 100, temp: int = 100):
     data = {'best': [], 'current': [], 'iteration': [], 'temperature': []}
     for i in range(iterations):
         cumulative = i*sa_iterations
 
-        initial_input = simulated_annealing(initial_input, cooling_function, sa_iterations, temp, cumulative=cumulative, data=data)
+        initial_input = _simulated_annealing(initial_input, cooling_function, sa_iterations, temp, cumulative=cumulative, data=data)
         plot_simulated_annealing(data)
 
     return initial_input

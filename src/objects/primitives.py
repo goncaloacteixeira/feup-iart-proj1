@@ -31,19 +31,19 @@ class Product:
 
 class Spot(ABC):
     @abstractmethod
-    def __init__(self, id: int, position: Point, products: dict):
+    def __init__(self, id: int, position: Point, products: dict[int, int]):
         self.id = id
         self.position = position
         self.products = products
 
-    def add_products(self, products: dict):
+    def add_products(self, products: dict[int, int]):
         for product, quantity in products.items():
             if product in self.products:
                 self.products[product] += quantity
             else:
                 self.products[product] = quantity
 
-    def remove_products(self, products: dict):
+    def remove_products(self, products: dict[int, int]):
         for product, quantity in products.items():
             self.products[product] -= quantity
             if self.products[product] == 0:
@@ -51,7 +51,7 @@ class Spot(ABC):
 
 
 class Warehouse(Spot):
-    def __init__(self, id: int, position: Point, products: dict):
+    def __init__(self, id: int, position: Point, products: dict[int, int]):
         super().__init__(id, position, products)
 
     def __str__(self) -> str:
@@ -61,11 +61,17 @@ class Warehouse(Spot):
         return "[WAREHOUSE {id}] - position={position}\n{products}" \
             .format(id=self.id, position=self.position, products=products)
 
+    def has_any_product(self, products: dict) -> bool:
+        for k, v in products.items():
+            if self.products.get(k, -1) > 0:
+                return True
+        return False
+
 
 class Order(Spot):
-    def __init__(self, id: int, position: Point, products: dict):
+    def __init__(self, id: int, position: Point, products: dict[int, int]):
         super().__init__(id, position, products)
-        self.product_weight = sum(p.weight * q for p, q in self.products.items())
+        self.product_weight = 0
 
     def __str__(self) -> str:
         products = ""
@@ -76,6 +82,9 @@ class Order(Spot):
 
     def complete(self):
         return not self.products
+
+    def update_weight(self):
+        self.product_weight = sum(Problem.get_product(p).weight * q for p, q in self.products.items())
 
 
 class Problem:
@@ -89,6 +98,20 @@ class Problem:
     orders: list[Order] = None
     products: list[Product] = None
 
+    def __init__(self, rows, cols, drones, turns, payload, warehouses, orders, products):
+        self.rows = rows
+        self.cols = cols
+        self.drones = drones
+        self.turns = turns
+        self.payload = payload
+        self.warehouses = warehouses
+        self.orders = orders
+        self.products = products
+
+    @staticmethod
+    def get_product(product_id: int) -> Product:
+        return Problem.products[product_id]
+
     @staticmethod
     def calculate_points(turn: int) -> int:
         return math.ceil(((Problem.turns - turn) / Problem.turns) * 100)
@@ -98,6 +121,9 @@ class Problem:
     def read_file(file_path: str):
         [Problem.rows, Problem.cols, Problem.drones, Problem.turns, Problem.payload, Problem.warehouses, Problem.orders,
          Problem.products] = Problem.parse_file(file_path)
+        for order in Problem.orders:
+            order.update_weight()
+        # map(lambda x: x.update_weight(), Problem.orders)
 
     @staticmethod
     def parse_file(filename) -> tuple[int, int, int, int, int, list[Warehouse], list[Order], list[Product]]:
@@ -121,7 +147,7 @@ class Problem:
                 # to ensure the products are listed on the warehouse
                 assert n_products == len(n_products_warehouse)
                 # stores the warehouse products on a dict {Product -> quantity: int}
-                warehouse_products = {product: n for product, n in zip(products, n_products_warehouse)}
+                warehouse_products = {product.id: n for product, n in zip(products, n_products_warehouse)}
                 warehouse = Warehouse(i, Point(x, y), warehouse_products)
                 warehouses.append(warehouse)
 
@@ -131,19 +157,32 @@ class Problem:
             for i in range(n_orders):
                 x, y = map(int, file.readline().split(" "))
                 n_products_in_order = int(file.readline())
-                order_products = list(map(int, file.readline().split(" ")))
+                order_products = list(map(int, file.readline().split(" ")))   # applies int() to each element
                 # to ensure the number of products in order actually corresponds to the number of products listed
                 assert n_products_in_order == len(order_products)
-                order_products = [products[x] for x in order_products]
+                # order_products = [products[x] for x in order_products]      # list[int] -> list[Product]
                 order = Order(i, Point(x, y), dict(Counter(order_products)))
                 order_list.append(order)
 
         return n_rows, n_cols, n_drones, max_turns, max_payload, warehouses, order_list, products
 
+    # @staticmethod
+    # def copy() -> Problem:
+    #     rows = deepcopy(Problem.rows)
+    #     cols = deepcopy(Problem.cols)
+    #     drones = deepcopy(Problem.drones)
+    #     turns = deepcopy(Problem.turns)
+    #     payload = deepcopy(Problem.payload)
+    #     warehouses = deepcopy(Problem.warehouses)
+    #     orders = deepcopy(Problem.orders)
+    #     products = deepcopy(Problem.products)
+    #
+    #     return Problem()
+
 
 class Gene:
     def __init__(self, drone_id: Union[int, None], demand: int, node: Spot, product: Product, turn: int = None):
-        self.droneID = drone_id
+        self.drone_id = drone_id
         self.demand = demand
         self.node = node
         self.product = product
@@ -151,7 +190,7 @@ class Gene:
         self.penalty = 0
 
     def __str__(self) -> str:
-        return "[ {droneID} | {demand} | {productID} | {node} | {turns} | {penalty} ]".format(droneID=self.droneID,
+        return "[ {droneID} | {demand} | {productID} | {node} | {turns} | {penalty} ]".format(droneID=self.drone_id,
                                                                                               demand=self.demand,
                                                                                               node=self.node.id,
                                                                                               productID=self.product.id,
@@ -159,13 +198,13 @@ class Gene:
                                                                                               penalty=self.penalty)
 
     def set_drone(self, drone: int) -> None:
-        self.droneID = drone
+        self.drone_id = drone
 
     def set_turns(self, turns: int) -> None:
         self.turn = turns
 
     def __eq__(self, o: Gene) -> bool:
-        return self.droneID == o.droneID and self.demand == o.demand and self.node.id == o.node.id and self.product.id == o.product.id and self.turn == o.turn
+        return self.drone_id == o.drone_id and self.demand == o.demand and self.node.id == o.node.id and self.product.id == o.product.id and self.turn == o.turn
 
     def __hash__(self) -> int:
         return super().__hash__()
@@ -282,23 +321,20 @@ class Chromosome:
     def mutate(self):
         mutated_chromosome = deepcopy(self)
 
-        mutation_prob = random.randint(0, 1)
+        mutation_functions = [unbalance_quantities, join_genes, pop_gene, cleanse_genes, switch_drones]
 
-        mutation_functions = [unbalance_quantities, switch_drones, join_genes]
-
-        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions) - 1)](
-            mutated_chromosome.genes)
+        mutated_chromosome.genes = mutation_functions[random.randint(0, len(mutation_functions))](mutated_chromosome.genes)
 
         return mutated_chromosome
 
     def __update_solution(self, gene: Gene) -> None:
-        if gene.droneID is None:
+        if gene.drone_id is None:
             return
 
-        if not self.__path_exists(gene.droneID):
-            self.__add_path(gene.droneID)
+        if not self.__path_exists(gene.drone_id):
+            self.__add_path(gene.drone_id)
 
-        path = self.__get_path(gene.droneID)
+        path = self.__get_path(gene.drone_id)
         last_step = path.get_last_step()
         if last_step is None:
             previous_position = Problem.warehouses[0].position
@@ -325,6 +361,7 @@ class Chromosome:
         for drone_path in self.solution.values():
             self.penalty += check_payload(drone_path, Problem.products, Problem.payload)
             self.penalty += check_delivery(drone_path)
+            self.penalty += check_turns(drone_path, Problem.turns)
 
     def __path_exists(self, drone_id: int) -> bool:
         return True if drone_id in self.solution else False
@@ -356,7 +393,7 @@ class Shipment:
         self.drone_path = drone_path
         self.order = order
         self.warehouse = warehouse
-        self.products: dict[Product, int] = {}
+        self.products: dict[int, int] = {}
         self.product_weight = 0
         self.turns = 0
         self.score = 0
@@ -367,30 +404,30 @@ class Shipment:
         self.create()
 
     def create(self):
-        prods: list[tuple[Product, int]] = []
-        for product, quantity in self.order.products.items():
-            available = min(quantity, self.warehouse.products.get(product, 0))
+        prods: list[tuple[int, int]] = []
+        for product_id, quantity in self.order.products.items():
+            available = min(quantity, self.warehouse.products.get(product_id, 0))
             if available > 0:
-                prods.append((product, available))
+                prods.append((product_id, available))
 
-        prods = sorted(prods, key=lambda p: -p[0].weight)
+        prods = sorted(prods, key=lambda p: -Problem.get_product(p[0]).weight)
         drone_payload = Problem.payload
-        carrying: dict[Product, int] = {}
+        carrying: dict[int, int] = {}
 
-        for product, quantity in prods:
+        for product_id, quantity in prods:
             while quantity > 0:
-                if product.weight <= drone_payload:
-                    drone_payload -= product.weight
-                    if product in carrying.keys():
-                        carrying[product] += 1
+                if Problem.get_product(product_id).weight <= drone_payload:
+                    drone_payload -= Problem.get_product(product_id).weight
+                    if product_id in carrying.keys():
+                        carrying[product_id] += 1
                     else:
-                        carrying[product] = 1
+                        carrying[product_id] = 1
                     quantity -= 1
                 else:
                     break
 
         self.products = carrying
-        self.product_weight = sum(p.weight * q for p, q in self.products.items())
+        self.product_weight = sum(Problem.get_product(p).weight * q for p, q in self.products.items())
         self.accomplishment = self.product_weight / self.order.product_weight
 
         self.calculate_score()
@@ -411,15 +448,15 @@ class Shipment:
         self.drone_path.add_shipment(self)
 
         # update chromosome load genes
-        for product, quantity in self.products.items():
+        for product_id, quantity in self.products.items():
             chromosome.add_gene(
-                Gene(self.drone_path.drone_id, quantity, self.warehouse, product, self.drone_path.turns + 1))
+                Gene(self.drone_path.drone_id, quantity, self.warehouse, Problem.get_product(product_id), self.drone_path.turns + 1))
 
         self.drone_path.add_turns(self.turns)
 
         # update chromosome unload genes
-        for product, quantity in self.products.items():
+        for product_id, quantity in self.products.items():
             chromosome.add_gene(
-                Gene(self.drone_path.drone_id, -quantity, self.order, product, self.drone_path.turns + 1))
+                Gene(self.drone_path.drone_id, -quantity, self.order, Problem.get_product(product_id), self.drone_path.turns))
 
         return int(self.order.complete())

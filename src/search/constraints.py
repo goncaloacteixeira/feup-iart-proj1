@@ -1,5 +1,5 @@
 def check_turns(drone_path, turns):
-    final_turn = max(gene.turn for gene in drone_path.steps)  # aplicar penalty aos genes todos ou só ao ultimo?
+    final_turn = max(gene.turn for gene in drone_path.steps)
     if final_turn > turns:
         return 1
     return 0
